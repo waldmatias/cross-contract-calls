@@ -6,7 +6,7 @@ pub use remote::*;
 
 #[cfg(test)]
 mod test {
-    use near_sdk_sim::{call, deploy, init_simulator, to_yocto, ContractAccount, UserAccount};
+    use near_sdk_sim::{call, deploy, init_simulator, ContractAccount, UserAccount};
     use super::*;
 
     // Load in contract bytes
@@ -15,9 +15,7 @@ mod test {
       static ref REMOTE_WASM_BYTES: &'static [u8] = include_bytes!("../../../../build/debug/00-remote.wasm").as_ref();
     }
 
-    fn init(
-        initial_balance: u128,
-    ) -> (
+    fn init() -> (
         UserAccount,
         ContractAccount<LocalContract>,
         ContractAccount<RemoteContract>,
@@ -50,18 +48,17 @@ mod test {
 
     #[test]
     fn high_level_function_call() {
-        let initial_balance = to_yocto("100000");
-        let (master_account, local, _remote) = init(initial_balance);
+        let (master_account, local, _remote) = init();
         let res = call!(
             master_account,
             local.xcc("high_fc", "remote", "do_some_work", "")
         );
-        println!("{:#?}\n{:#?}\n{:#?}\n", res, res.promise_results(), res.unwrap_json::<String>());
+        // println!("{:#?}\n{:#?}\n{:#?}\n", res, res.promise_results(), res.unwrap_json::<String>());
+        res.assert_success()
     }
     #[test]
     fn high_level_batch_action() {
-        let initial_balance = to_yocto("100000");
-        let (master_account, local, _remote) = init(initial_balance);
+        let (master_account, local, _remote) = init();
         let res = call!(
             master_account,
             local.xcc("high_ba", "remote", "do_some_work", "{'args': 'hello'    }")
@@ -76,8 +73,7 @@ mod test {
 
     #[test]
     fn low_level_function_call() {
-        let initial_balance = to_yocto("100000");
-        let (master_account, local, _remote) = init(initial_balance);
+        let (master_account, local, _remote) = init();
         let res = call!(
             master_account,
             local.xcc("low_fc", "remote", "do_some_work", "")
@@ -87,8 +83,7 @@ mod test {
 
     #[test]
     fn low_level_batch_action() {
-        let initial_balance = to_yocto("100000");
-        let (master_account, local, _remote) = init(initial_balance);
+        let (master_account, local, _remote) = init();
         let res = call!(
             master_account,
             local.xcc("low_ba", "remote", "do_some_work", "")
