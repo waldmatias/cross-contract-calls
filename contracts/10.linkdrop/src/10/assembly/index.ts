@@ -151,7 +151,7 @@ export function create_account(new_account_id: AccountId, new_public_key: Base58
     .add_full_access_key(base58.decode(new_public_key))
     .transfer(amount)
     .then(context.contractName) // the callback is on this contract
-    .function_call( //if the acc-creation & transfer goes trhu, it will delete the function-call key used to perform this call
+    .function_call( //if the acc-creation & transfer goes trhu, it will delete the function-call access-key used to call us and claim the linkdrop
       "on_account_created",
       new OnAccountCreatedArgs(context.predecessor, amount),
       NO_DEPOSIT,
@@ -222,7 +222,7 @@ class OnAccountCreatedAndClaimedArgs {
 /**
  * https://github.com/near/near-linkdrop/blob/63a4d0c4acbc2ffcf865be2b270c900bea765782/src/lib.rs#L180-L182
  *
- * Returns the kindrop funds associated with a given key.
+ * Returns the likdrop funds associated with a given public-key.
  * @param public_key
  */
 export function get_key_balance(public_key: Base58PublicKey): u128 {
