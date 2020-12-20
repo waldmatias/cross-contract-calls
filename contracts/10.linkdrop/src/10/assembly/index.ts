@@ -53,8 +53,7 @@ export function send(public_key: Base58PublicKey): void {
 
   const current_account_id = context.contractName
 
-  ContractPromiseBatch
-    .create(current_account_id)
+  ContractPromiseBatch.create(current_account_id) //act on current_account_id
     .add_access_key(
       public_key_arr,
       ACCESS_KEY_ALLOWANCE,
@@ -81,8 +80,7 @@ export function claim(account_id: AccountId): void {
   const amount = accounts.getSome(signer_account_pk) // .expect("Unexpected public key"); @willem:
   accounts.delete(signer_account_pk)
 
-  ContractPromiseBatch
-    .create(current_account_id)
+  ContractPromiseBatch.create(current_account_id) //act on current_account_id
     .delete_key(base58.decode(signer_account_pk))
 
   ContractPromiseBatch
@@ -112,12 +110,11 @@ export function create_account_and_claim(new_account_id: AccountId, new_public_k
   accounts.delete(signer_account_pk)
   const newKey = decodePk(new_public_key);
   logging.log("new Key: " + base58.encode(newKey));
-  ContractPromiseBatch
-    .create(new_account_id)
+  ContractPromiseBatch.create(new_account_id) //act on new_account_id
     .create_account()
     .add_full_access_key(newKey)
     .transfer(amount)
-    .then(current_account_id)
+    .then(current_account_id) // the callback is on the current_account_id
     .function_call(
       "on_account_created_and_claimed",
       new OnAccountCreatedAndClaimedArgs(amount),
@@ -141,11 +138,10 @@ export function create_account(new_account_id: AccountId, new_public_key: Base58
   assert(env.isValidAccountID(new_account_id), "Invalid account id")
   let amount = context.attachedDeposit
 
-  ContractPromiseBatch
-    .create(new_account_id)
+  ContractPromiseBatch.create(new_account_id) //act on new_account_id
     .add_full_access_key(base58.decode(new_public_key))
     .transfer(amount)
-    .then(context.contractName)
+    .then(context.contractName) // the callback is on this contract
     .function_call(
       "on_account_created",
       new OnAccountCreatedArgs(context.predecessor, amount),
@@ -168,8 +164,7 @@ export function on_account_created(predecessor_account_id: AccountId, amount: u1
   const creation_succeeded = is_promise_success();
   if (!creation_succeeded) {
     // In case of failure, send funds back.
-    ContractPromiseBatch
-      .create(predecessor_account_id)
+    ContractPromiseBatch.create(predecessor_account_id) // act on predecessor_account_id
       .transfer(amount)
   }
   return creation_succeeded
@@ -198,8 +193,7 @@ export function on_account_created_and_claimed(amount: u128): bool {
   const creation_succeeded = is_promise_success();
 
   if (!creation_succeeded) {
-    ContractPromiseBatch
-      .create(current_account_id)
+    ContractPromiseBatch.create(current_account_id) //act on current_account_id
       .delete_key(base58.decode(signer_account_pk))
   } else {
     accounts.set(signer_account_pk, amount)
@@ -228,6 +222,7 @@ export function get_key_balance(public_key: Base58PublicKey): u128 {
   return accounts.getSome(canonical_pk)
 }
 
+// decode a string represting a Key in the form ed25519:xxxxxxxxxxxxxx into a Uint8Array
 export function decodePk(key: PublicKey): Uint8Array {
   if (key.indexOf(':') > -1) {
     const keyParts = key.split(':')
