@@ -15,12 +15,15 @@ mod test {
       static ref REMOTE_WASM_BYTES: &'static [u8] = include_bytes!("../../../../build/debug/00-remote.wasm").as_ref();
     }
 
+    // init simulated environment
     fn init() -> (
         UserAccount,
         ContractAccount<LocalContract>,
         ContractAccount<RemoteContract>,
     ) {
-        let master_account = init_simulator(None);
+        // init simulator returns the master account of the simulated environment
+        let master_account = init_simulator(None); 
+        // create account and deploy contract code for LocalContract
         // uses default values for deposit and gas
         let local_contract = deploy!(
             // Contract Proxy
@@ -32,6 +35,7 @@ mod test {
             // User deploying the contract,
             signer_account: master_account
         );
+        // create account and deploy contract code for RemoteContract
         let remote_contract = deploy!(
             // Contract Proxy
             contract: RemoteContract,
@@ -43,12 +47,13 @@ mod test {
             signer_account: master_account
         );
 
-        (master_account, local_contract, remote_contract)
+        return (master_account, local_contract, remote_contract)
     }
 
     #[test]
     fn high_level_function_call() {
         let (master_account, local, _remote) = init();
+        // simulate a user signing a transaction calling local.xcc
         let res = call!(
             master_account,
             local.xcc("high_fc", "remote", "do_some_work", "")
@@ -56,13 +61,16 @@ mod test {
         // println!("{:#?}\n{:#?}\n{:#?}\n", res, res.promise_results(), res.unwrap_json::<String>());
         res.assert_success()
     }
+    
     #[test]
     fn high_level_batch_action() {
         let (master_account, local, _remote) = init();
+        // simulate a user signing a transaction calling local.xcc
         let res = call!(
             master_account,
             local.xcc("high_ba", "remote", "do_some_work", "{'args': 'hello'    }")
         );
+        // the result returned by local.xcc
         println!(
             "{:#?}\n{:#?}\n{:#?}\n",
             res,
@@ -74,20 +82,24 @@ mod test {
     #[test]
     fn low_level_function_call() {
         let (master_account, local, _remote) = init();
+        // simulate a user signing a transaction calling local.xcc
         let res = call!(
             master_account,
             local.xcc("low_fc", "remote", "do_some_work", "")
         );
+        // the result returned by local.xcc
         println!("{:#?}\n{:#?}\n{:#?}\n", res, res.promise_results(), res.unwrap_json::<String>());
     }
 
     #[test]
     fn low_level_batch_action() {
         let (master_account, local, _remote) = init();
+        // simulate a user signing a transaction calling local.xcc
         let res = call!(
             master_account,
             local.xcc("low_ba", "remote", "do_some_work", "")
         );
+        // the result returned by local.xcc
         println!("{:#?}\n{:#?}\n{:#?}\n", res, res.promise_results(), res.unwrap_json::<String>());
     }
 }
