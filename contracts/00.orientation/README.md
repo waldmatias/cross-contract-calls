@@ -1,6 +1,6 @@
 ## Orientation to Cross-contract Calls
 
-NEAR Protocol supports issuing unsigned transactions from within your contract code.  This covers the most common use cases like calling one contract from another as well as more advanced patterns like using one contract as a factory (to generate) or proxy (to relay calls) for other contracts.  The mechanism for this is referred to by several names which can be confusing at first until you realize that everyone is talking about different parts of the same elephant but from different perspectives.
+NEAR Protocol supports issuing transactions from within your contract code.  This covers the most common use cases like calling one contract from another as well as more advanced patterns like using one contract as a factory (to generate) or proxy (to relay calls) for other contracts.  The mechanism for this is referred to by several names which can be confusing at first until you realize that everyone is talking about different parts of the same elephant but from different perspectives.
 
 ### Receipts
 
@@ -13,7 +13,7 @@ You can read more about these artifacts in the [technical documentation here](ht
 
 ### Levels of Abstraction
 
-There are three (2) levels of abstraction in the NEAR SDKs for AssemblyScript and Rust.  The lower level is not recommended for use by developers new to the platform since the higher level developer friendly.  The files included in this module provide examples of each of these levels of abstraction with (hopefully) enough context to make their use clear.
+There are three (2) levels of abstraction in the NEAR SDKs for AssemblyScript and Rust.  The lower level is not recommended for use by developers new to the platform since the higher level is more developer friendly.  The files included in this module provide examples of each of these levels of abstraction with (hopefully) enough context to make their use clear.
 
 - **High Level**:  \
   - Function Call API  \
@@ -99,7 +99,7 @@ The high level interface is designed to resemble the JavaScript Promise interfac
 
 - `ContractPromise.create`: (static method) addresses the most common pattern, calling one contract method from another
 - `ContractPromise.all`: (static method) allows merging the results of multiple method calls
-- `ContractPromise#then`: allows chaining multiple method calls (i.e. do one after the other completes)
+- `ContractPromise.then`: allows chaining multiple method calls (i.e. do one after the other completes)
 
 **when?**
 
@@ -335,8 +335,7 @@ Repeating here the same list as above:
 
 ```ts
 export function fire_and_forget(): void {
-  const promise = ContractPromiseBatch
-    .create(remote_account)                    // target contract account name
+  const promise = ContractPromiseBatch.create(remote_account) // target contract account name
     .function_call(
       remote_method,                           // target method name
       remote_args,                             // target method arguments
@@ -361,8 +360,7 @@ export function call_me_maybe(): void {
   const callback_method = 'on_complete'
   const callback_args = 'done and done'
 
-  ContractPromiseBatch
-    .create(remote_account)                    // target contract account name
+  ContractPromiseBatch.create(remote_account)                    // target contract account name
     .function_call(
       remote_method,                           // target method name
       remote_args,                             // target method arguments
@@ -390,8 +388,7 @@ export function on_complete(args: string): void {
 
 ```ts
 export function all_together_now(): void {
-  const promise_1 = ContractPromiseBatch
-    .create(remote_account_1)                  // target contract account name
+  const promise_1 = ContractPromiseBatch.create(remote_account_1)                  // target contract account name
     .function_call(
       remote_method_1,                         // target method name
       remote_args_1,                           // target method arguments
@@ -399,8 +396,7 @@ export function all_together_now(): void {
       BASIC_GAS,                               // gas attached to the call (~5 Tgas (5e12) per "hop")
     )
 
-  const promise_2 = ContractPromiseBatch
-    .create(remote_account_2)                  // target contract account name
+  const promise_2 = ContractPromiseBatch.create(remote_account_2)                  // target contract account name
     .function_call(
       remote_method_2,                         // target method name
       remote_args_2,                           // target method arguments
