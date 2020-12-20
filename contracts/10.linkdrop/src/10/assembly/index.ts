@@ -5,6 +5,7 @@ type PublicKey = string
 type Base58PublicKey = string
 type Balance = u128
 
+//store how much NEAR was included in the drop for each account
 export const accounts = new PersistentMap<PublicKey, Balance>("a")
 
 export const ACCESS_KEY_ALLOWANCE: u128 = u128.from("1000000000000000000000000") // 1 NEAR
@@ -38,27 +39,30 @@ function is_promise_success(): bool { // @willem: not sure how to express this m
  * @param public_key
  */
 export function send(public_key: Base58PublicKey): void {
+  // decode param, can include ed25529: prefix
   let public_key_arr = decodePk(public_key)
+  //re-encode as string, canonical format
   let canonical_pk = base58.encode(public_key_arr)
 
   const attached_deposit = context.attachedDeposit
   assert(attached_deposit > ACCESS_KEY_ALLOWANCE, "Attached deposit must be greater than ACCESS_KEY_ALLOWANCE")
 
+  //find the account assigned amount in our map, if it's not there, return u128.Zero
   const value = accounts.get(canonical_pk, u128.Zero)!
 
   logging.log(attached_deposit)
   //                    value + env::attached_deposit() - ACCESS_KEY_ALLOWANCE
   let amount = u128.add(value, u128.sub(attached_deposit, ACCESS_KEY_ALLOWANCE));
+  //update funds associated with the linkdrop with: attached_deposit minus ACCESS_KEY_ALLOWANCE
   accounts.set(canonical_pk, amount)
 
   const current_account_id = context.contractName
-
-  ContractPromiseBatch.create(current_account_id) //act on current_account_id
-    .add_access_key(
+  ContractPromiseBatch.create(current_account_id) //act on this contract
+    .add_access_key( //add a key to allow calling us to claim the linkdrop
       public_key_arr,
       ACCESS_KEY_ALLOWANCE,
       current_account_id,
-      ["claim", "create_account_and_claim"]
+      ["claim", "create_account_and_claim"] //we only allow calls to claim & create_account_and_claim
     );
 }
 
@@ -77,15 +81,16 @@ export function claim(account_id: AccountId): void {
   assert(context.predecessor == current_account_id, "Claim only can come from this account")
   assert(env.isValidAccountID(account_id), "Invalid account id")
 
+  //get near amount associated with this linkdrop
   const amount = accounts.getSome(signer_account_pk) // .expect("Unexpected public key"); @willem:
+  //remove from our persistent map, it's being claimed
   accounts.delete(signer_account_pk)
 
   ContractPromiseBatch.create(current_account_id) //act on current_account_id
-    .delete_key(base58.decode(signer_account_pk))
+    .delete_key(base58.decode(signer_account_pk)) //delete key that allowed claimer to call us
 
-  ContractPromiseBatch
-    .create(account_id)
-    .transfer(amount)
+  ContractPromiseBatch.create(account_id) //act on claimed account
+    .transfer(amount) //send linkdrop funds to claimed account
 }
 
 
@@ -105,15 +110,19 @@ export function create_account_and_claim(new_account_id: AccountId, new_public_k
   assert(context.predecessor == current_account_id, "Claim only can come from this account")
   assert(env.isValidAccountID(new_account_id), "Invalid account id")
 
+  //get near amount associated with this linkdrop
   const amount = accounts.getSome(signer_account_pk) // .expect("Unexpected public key"); @willem
   logging.log("AMOUNT: " + amount.toString())
+  //remove from our persistent map, it's being claimed
   accounts.delete(signer_account_pk)
+  // decode key param, can include ed25529: prefix
   const newKey = decodePk(new_public_key);
+  // reencode into canonical form
   logging.log("new Key: " + base58.encode(newKey));
   ContractPromiseBatch.create(new_account_id) //act on new_account_id
-    .create_account()
-    .add_full_access_key(newKey)
-    .transfer(amount)
+    .create_account() //create the account
+    .add_full_access_key(newKey) //add the provided key as full-access
+    .transfer(amount) //send the funds from the linkdrop
     .then(current_account_id) // the callback is on the current_account_id
     .function_call(
       "on_account_created_and_claimed",
@@ -142,7 +151,7 @@ export function create_account(new_account_id: AccountId, new_public_key: Base58
     .add_full_access_key(base58.decode(new_public_key))
     .transfer(amount)
     .then(context.contractName) // the callback is on this contract
-    .function_call(
+    .function_call( //if the acc-creation & transfer goes trhu, it will delete the function-call key used to perform this call
       "on_account_created",
       new OnAccountCreatedArgs(context.predecessor, amount),
       NO_DEPOSIT,
@@ -194,9 +203,9 @@ export function on_account_created_and_claimed(amount: u128): bool {
 
   if (!creation_succeeded) {
     ContractPromiseBatch.create(current_account_id) //act on current_account_id
-      .delete_key(base58.decode(signer_account_pk))
+      .delete_key(base58.decode(signer_account_pk)) //delete the function-call key used to claim the linkdrop
   } else {
-    accounts.set(signer_account_pk, amount)
+      accounts.set(signer_account_pk, amount) //restore unclaimed record to allow a re-try
   }
   return creation_succeeded
 }
@@ -213,12 +222,14 @@ class OnAccountCreatedAndClaimedArgs {
 /**
  * https://github.com/near/near-linkdrop/blob/63a4d0c4acbc2ffcf865be2b270c900bea765782/src/lib.rs#L180-L182
  *
- * Returns the balance associated with given key.
+ * Returns the kindrop funds associated with a given key.
  * @param public_key
  */
 export function get_key_balance(public_key: Base58PublicKey): u128 {
+  //decode and re-encode in cannonical form
   let public_key_arr = decodePk(public_key)
   let canonical_pk = base58.encode(public_key_arr)
+  //return near amount associated with the public key
   return accounts.getSome(canonical_pk)
 }
 
