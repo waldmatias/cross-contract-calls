@@ -16,7 +16,7 @@ class Supporter {
   constructor(
     public account: AccountId, 
     public amount: u128, 
-    public coordinates: GeoCoords
+    // public coordinates: GeoCoords
   ) {}
 }
 
@@ -40,9 +40,12 @@ const ONE_NEAR = u128.from("1000000000000000000000000")
 const XCC_GAS = 5000000000000 // 5 teragas
 const MIN_ACCOUNT_BALANCE = u128.mul(ONE_NEAR, u128.from(3)) // 3 NEAR min to keep account alive via storage staking
 
+// TODO: assert attached minimum account balance
 export function initialize(): void {
   storage.set(KEY_FACTORY, context.predecessor)
   storage.set(KEY_METADATA, false)
+  storage.set(KEY_TOTAL_FUNDING, u128.Zero)
+  storage.set(KEY_FUNDED, false)
 }
 
 export function is_configured(): bool {
@@ -55,7 +58,14 @@ export function configure(title: string, description: string, funding_goal: u128
   
   storage.set(KEY_FUNDING_GOAL, funding_goal)
   storage.set(KEY_MIN_DEPOSIT, min_deposit)  
-  storage.set(KEY_FUNDED, false)
+}
+
+export function get_factory(): AccountId {
+  return storage.getSome<AccountId>(KEY_FACTORY)
+}
+
+export function get_funding(): u128 {
+  return storage.getSome<u128>(KEY_TOTAL_FUNDING)
 }
 
 // '<project title>.<proposal type>.neighborly.testnet'
@@ -70,7 +80,9 @@ export function toString(): string {
   return "title: ["+ proposal.title + "]"
 }
 
-export function add_supporter(coordinates: GeoCoords): void {
+// export function add_supporter(coordinates: GeoCoords): void {
+export function add_supporter(): void {
+  // TODO: add assertion for is_configured
   assert(!storage.getSome<bool>(KEY_FUNDED), "Already funded")
   
   const amount = context.attachedDeposit
@@ -79,7 +91,8 @@ export function add_supporter(coordinates: GeoCoords): void {
 
   const account = context.sender
   
-  const supporter = new Supporter(account, amount, coordinates)
+  // const supporter = new Supporter(account, amount, coordinates)
+  const supporter = new Supporter(account, amount)
   supporters.push(supporter)
   
   add_funding(amount)
@@ -90,7 +103,7 @@ export function list_supporters(): PersistentVector<Supporter> {
 }
 
 function add_funding(amount: u128): void {
-  const current_total = storage.get<u128>(KEY_TOTAL_FUNDING)!
+  const current_total = storage.getSome<u128>(KEY_TOTAL_FUNDING)
   const new_amount = u128.add(amount, current_total)
   storage.set(KEY_TOTAL_FUNDING, new_amount)
   track_funded()
@@ -116,7 +129,7 @@ function toNEAR(amount: u128): string {
 
 // once funded, create a project
 // if this is done by the factory, then easier to version
-function create_project(): void {
+export function create_project(): void {
   const factory = storage.getSome<AccountId>(KEY_FACTORY)
   const proposal = storage.getSome<Proposal>(KEY_METADATA)
   const projectBudget = u128.sub(context.accountBalance, MIN_ACCOUNT_BALANCE)

@@ -1,5 +1,5 @@
 [package]
-name = "simulation-linkdrop"
+name = "simulation-nearly-neighbors"
 version = "0.1.0"
 authors = ["NEAR Inc <hello@near.org>"]
 edition = "2018"
