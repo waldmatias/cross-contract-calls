@@ -1,4 +1,4 @@
-import { u128, VM, VMContext, Context } from "near-sdk-as";
+import { u128, VM, VMContext, Context, env, base58, logging } from "near-sdk-as";
 import * as contract from '../assembly'
 
 const valid_account = 'alice'
@@ -78,22 +78,26 @@ describe('LinkDrop', () => {
     // @willem: can't test this bc of the TypeError thrown on setSigner_account_pk()
     // which means i can't actually claim the key as another signer
     xit('works for a valid drop claim', () => {
+      expect(env.isValidAccountID("alice")).toBeTruthy()
       // Deposit money to linkdrop contract.
       const large_deposit = u128.mul(contract.ACCESS_KEY_ALLOWANCE, u128.from(100))
+      VMContext.setSigner_account_id("alice")
       VMContext.setAttached_deposit(large_deposit)
       contract.send(pk)
 
       // Now, send new transaction to link drop contract.
       VMContext.setPredecessor_account_id('linkdrop')
       // @willem: looks like this method is broken?  not sure
-      // VMContext.setSigner_account_pk(pk) // TypeError: Reflect.get called on non-object
+      // let public_key_arr = contract.decodePk(pk)
+      // let canonical_pk = base58.encode(public_key_arr)
+      // VMContext.setSigner_account_pk(canonical_pk) // TypeError: Reflect.get called on non-object
       // log(Context.senderPublicKey) // "HuxUynD5GdrcZ5MauxJuu74sGHgS6wLfCqqhQkLWK" from default context object
       VMContext.setAccount_balance(large_deposit)
 
-      expect(() => {
-        let pk2 = "2S87aQ1PM9o6eBcEXnTR5yBAVRTiNmvj8J8ngZ6FzSca"
-        contract.create_account_and_claim(valid_account, pk2);
-      }).not.toThrow()
+      let pk2 = "2S87aQ1PM9o6eBcEXnTR5yBAVRTiNmvj8J8ngZ6FzSca"
+      contract.create_account_and_claim(valid_account, pk2);
+      // expect(() => {
+      // }).not.toThrow()
       // @willem: this ends up throwing here bc the default key doesn't match the expected signer key
       // @willem: i guess we can fudge it now and expect the default key but would be better to fix so
       //          we're not introducing a magical key somewhere

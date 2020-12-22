@@ -16,6 +16,7 @@ mod test {
       static ref LINKDROP_WASM_BYTES: &'static [u8] = include_bytes!("../../../../build/debug/10.wasm").as_ref();
     }
 
+    // initializes simulated environment and returns master account and contract
     fn init() -> (
         UserAccount,
         ContractAccount<LinkdropContract>,
@@ -33,7 +34,7 @@ mod test {
             signer_account: master_account
         );
 
-        (master_account, linkdrop_contract)
+        return (master_account, linkdrop_contract)
     }
     // #[test]
     // fn test_create_account() {
@@ -88,10 +89,13 @@ mod test {
           linkdrop.create_account_and_claim(&"bob", &receiver_id.public_key.to_string())
         );
         res.assert_success();
-        let bob = master_account.switch_signer(receiver_id);
+
+        println!("{:#?}\n{:#?}\n", res, res.promise_results());
+
+        // let bob = master_account.switch_signer(receiver_id);
 
 
-        println!("{:#?}\n{:#?},\n{:#?}\n", res, bob.account(), res.promise_errors());
+        // println!("{:#?}\n{:#?},\n{:#?}\n", res, bob.account(), res.promise_errors());
 
     }
 }

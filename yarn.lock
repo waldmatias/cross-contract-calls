@@ -378,6 +378,7 @@ near-mock-vm@^2.2.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/near-mock-vm/-/near-mock-vm-2.2.0.tgz#0a173a3e85a9e3bc70729ecbf1651d482feb8e69"
   integrity sha512-SAe9I9VaSHdFtZ0dD1yRJJDcJTGjdkCmZ2C/WH47kGRcZR0hCbp85F1DkY0EbHTCDP05gwpurn1QM6NMNSYYXQ==
+
   dependencies:
     "@assemblyscript/loader" "^0.9.4"
     yargs "^15.3.1"

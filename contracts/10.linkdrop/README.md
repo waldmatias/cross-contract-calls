@@ -2,6 +2,9 @@
 
 This example is based on a contract [originally written in Rust](https://github.com/near/near-linkdrop).
 
+
+
+
 From the original repo (modified slightly for clarity):
 
 > LinkDrop contract allows any user to create a link that their friends can use to claim tokens even if they don't have an account yet.
@@ -18,7 +21,7 @@ From the original repo (modified slightly for clarity):
 > - Receives `private_key_1` (can be done via any supported wallet app)
 > - Creates a new key pair `(public_key_2, private_key_2)`.
 > - Decides on a `new_account_id` they want to use as their new account.
-> - Calls `linkdrop.create_account_and_claim(new_account_id, public_key_2)`.
+> - Calls `linkdrop.create_account_and_claim(new_account_id, public_key_2)` signing message with `private_key_1`
 >
 > Linkdrop contract
 > - Creates new account named by the value of `new_account_id`
