@@ -89,10 +89,13 @@ mod test {
           linkdrop.create_account_and_claim(&"bob", &receiver_id.public_key.to_string())
         );
         res.assert_success();
-        let bob = master_account.switch_signer(receiver_id);
+
+        println!("{:#?}\n{:#?}\n", res, res.promise_results());
+
+        // let bob = master_account.switch_signer(receiver_id);
 
 
-        println!("{:#?}\n{:#?},\n{:#?}\n", res, bob.account(), res.promise_errors());
+        // println!("{:#?}\n{:#?},\n{:#?}\n", res, bob.account(), res.promise_errors());
 
     }
 }

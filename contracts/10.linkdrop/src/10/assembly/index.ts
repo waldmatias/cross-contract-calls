@@ -197,15 +197,15 @@ class OnAccountCreatedArgs {
 export function on_account_created_and_claimed(amount: u128): bool {
   const current_account_id = context.contractName
   const signer_account_pk = context.senderPublicKey
-
+  logging.log('on account created')
   assert(context.predecessor == current_account_id, "Callback can only be called from the contract")
   const creation_succeeded = is_promise_success();
 
-  if (!creation_succeeded) {
+  if (creation_succeeded) {
     ContractPromiseBatch.create(current_account_id) //act on current_account_id
       .delete_key(base58.decode(signer_account_pk)) //delete the function-call key used to claim the linkdrop
   } else {
-      accounts.set(signer_account_pk, amount) //restore unclaimed record to allow a re-try
+    accounts.set(signer_account_pk, amount) //restore unclaimed record to allow a re-try
   }
   return creation_succeeded
 }
