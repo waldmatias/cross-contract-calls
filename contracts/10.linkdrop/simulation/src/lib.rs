@@ -16,6 +16,7 @@ mod test {
       static ref LINKDROP_WASM_BYTES: &'static [u8] = include_bytes!("../../../../build/debug/10.wasm").as_ref();
     }
 
+    // initializes simulated environment and returns master account and contract
     fn init() -> (
         UserAccount,
         ContractAccount<LinkdropContract>,
@@ -33,7 +34,7 @@ mod test {
             signer_account: master_account
         );
 
-        (master_account, linkdrop_contract)
+        return (master_account, linkdrop_contract)
     }
     // #[test]
     // fn test_create_account() {
