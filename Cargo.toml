@@ -8,4 +8,5 @@
 members = [
   "contracts/00.orientation/simulation",
   "contracts/10.linkdrop/simulation",
+  "contracts/20.nearly-neighbors/simulation",
 ]

@@ -2046,6 +2046,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "simulation-nearly-neighbors"
+version = "0.1.0"
+dependencies = [
+ "near-sdk 2.0.0 (git+https://github.com/near/near-sdk-rs.git?tag=2.2.0)",
+ "near-sdk-sim 2.0.0 (git+https://github.com/near/near-sdk-rs.git?tag=2.2.0)",
+]
+
+[[package]]
 name = "simulation-orientation"
 version = "0.1.0"
 dependencies = [
