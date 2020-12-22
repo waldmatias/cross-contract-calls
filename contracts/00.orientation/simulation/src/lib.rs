@@ -22,7 +22,7 @@ mod test {
         ContractAccount<RemoteContract>,
     ) {
         // init simulator returns the master account of the simulated environment
-        let master_account = init_simulator(None); 
+        let master_account = init_simulator(None);
         // create account and deploy contract code for LocalContract
         // uses default values for deposit and gas
         let local_contract = deploy!(
@@ -47,7 +47,7 @@ mod test {
             signer_account: master_account
         );
 
-        return (master_account, local_contract, remote_contract)
+        return (master_account, local_contract, remote_contract);
     }
 
     #[test]
@@ -56,20 +56,31 @@ mod test {
         // simulate a user signing a transaction calling local.xcc
         let res = call!(
             master_account,
-            local.xcc("high_fc", "remote", "do_some_work", "")
+            local.xcc("high_fc", "remote", "do_some_work")
         );
-        // println!("{:#?}\n{:#?}\n{:#?}\n", res, res.promise_results(), res.unwrap_json::<String>());
-        res.assert_success()
+
+        res.assert_success();
+
+        // the result returned by local.xcc
+        println!(
+            "{:#?}\n{:#?}\n{:#?}\n",
+            res,
+            res.promise_results(),
+            res.unwrap_json::<String>()
+        );
     }
-    
+
     #[test]
     fn high_level_batch_action() {
         let (master_account, local, _remote) = init();
         // simulate a user signing a transaction calling local.xcc
         let res = call!(
             master_account,
-            local.xcc("high_ba", "remote", "do_some_work", "{'args': 'hello'    }")
+            local.xcc("high_ba", "remote", "do_some_work")
         );
+
+        res.assert_success();
+
         // the result returned by local.xcc
         println!(
             "{:#?}\n{:#?}\n{:#?}\n",
@@ -85,10 +96,18 @@ mod test {
         // simulate a user signing a transaction calling local.xcc
         let res = call!(
             master_account,
-            local.xcc("low_fc", "remote", "do_some_work", "")
+            local.xcc("low_fc", "remote", "do_some_work")
         );
+
+        res.assert_success();
+
         // the result returned by local.xcc
-        println!("{:#?}\n{:#?}\n{:#?}\n", res, res.promise_results(), res.unwrap_json::<String>());
+        println!(
+            "{:#?}\n{:#?}\n{:#?}\n",
+            res,
+            res.promise_results(),
+            res.unwrap_json::<String>()
+        );
     }
 
     #[test]
@@ -97,9 +116,17 @@ mod test {
         // simulate a user signing a transaction calling local.xcc
         let res = call!(
             master_account,
-            local.xcc("low_ba", "remote", "do_some_work", "")
+            local.xcc("low_ba", "remote", "do_some_work")
         );
+
+        res.assert_success();
+
         // the result returned by local.xcc
-        println!("{:#?}\n{:#?}\n{:#?}\n", res, res.promise_results(), res.unwrap_json::<String>());
+        println!(
+            "{:#?}\n{:#?}\n{:#?}\n",
+            res,
+            res.promise_results(),
+            res.unwrap_json::<String>()
+        );
     }
 }

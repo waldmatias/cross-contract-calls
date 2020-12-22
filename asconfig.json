@@ -2,11 +2,11 @@
   "workspaces": [
     "contracts/00.orientation/src/00-local",
     "contracts/00.orientation/src/00-remote",
+    "contracts/01.using-single-calls/src/01-loopback",
     "contracts/10.linkdrop/src/10",
     "contracts/20.nearly-neighbors/src/20-proposal"
   ],
   "in-progress": [
-    "contracts/01.using-single-calls/src/01",
     "contracts/02.using-multiple-calls/src/02",
     "contracts/03.using-callbacks/src/03",
     "contracts/20.nearly-neighbors/src/20-factory"
