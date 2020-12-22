@@ -27,7 +27,7 @@ Each of these contracts is designed to be self-contained and so may be extracted
   - `package.json`: JavaScript project dependencies and several useful scripts
 
 - AssemblyScript artifacts
-  - `asconfig.json`: AssemblyScript project configuration including workspace configuration
+  - `asconfig.json`: AssemblyScript project (and per contract) configuration including workspace configuration
   - `as-pect.config.js`: as-pect unit testing dependency
   - `contracts/tsconfig.json`: load TypeScript types
   - `contracts/as_types.ts`: AssemblyScript types header file
