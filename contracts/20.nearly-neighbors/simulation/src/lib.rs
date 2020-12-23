@@ -4,12 +4,12 @@ pub use proposal::*;
 
 #[cfg(test)]
 mod test {
-    use near_sdk::{serde_json::json, json_types::{Base58PublicKey}};//, U128};
+    use near_sdk::{json_types::Base58PublicKey, serde_json::json}; //, U128};
     use near_sdk_sim::near_crypto::{InMemorySigner, KeyType};
     use std::convert::TryInto;
 
-    use near_sdk_sim::{call, deploy, init_simulator, to_yocto, ContractAccount, UserAccount};
     use super::*;
+    use near_sdk_sim::{call, deploy, init_simulator, to_yocto, ContractAccount, UserAccount};
 
     // Load in contract bytes
     near_sdk_sim::lazy_static! {
@@ -17,10 +17,7 @@ mod test {
       static ref PROPOSAL_WASM_BYTES: &'static [u8] = include_bytes!("../../../../build/debug/20-proposal.wasm").as_ref();
     }
 
-    fn init() -> (
-        UserAccount,
-        ContractAccount<ProposalContract>,
-    ) {
+    fn init() -> (UserAccount, ContractAccount<ProposalContract>) {
         let master_account = init_simulator(None);
         // uses default values for deposit and gas
         let proposal_contract = deploy!(
@@ -31,7 +28,8 @@ mod test {
             // Bytes of contract
             bytes: &PROPOSAL_WASM_BYTES,
             // User deploying the contract,
-            signer_account: master_account
+            signer_account: master_account,
+            deposit: to_yocto("10")
         );
 
         (master_account, proposal_contract)
@@ -52,59 +50,74 @@ mod test {
 
     #[test]
     fn test_initialize() {
-      let (master_account, proposal) = init();
-      let res = call!(
-          master_account,
-          proposal.initialize()
-      );
-      // println!("{:#?}\n{:#?}\n{:#?}\n", res, res.promise_results(), res.unwrap_json::<String>());
-      // println!("{:#?}\n", res);
-      res.assert_success()
+        let (master_account, proposal) = init();
+        let res = call!(
+            master_account,
+            proposal.initialize(),
+            deposit = to_yocto("3")
+        );
+        // println!("{:#?}\n{:#?}\n{:#?}\n", res, res.promise_results(), res.unwrap_json::<String>());
+        // println!("{:#?}\n", res);
+        res.assert_success()
     }
 
     #[test]
     fn test_factory() {
         let (master_account, proposal) = init();
-        
+
         call!(
             master_account,
-            proposal.initialize()
+            proposal.initialize(),
+            deposit = to_yocto("3")
         );
-      
-        let res = call!(
-            master_account,
-            proposal.get_factory()
-        );
+
+        let res = call!(master_account, proposal.get_factory());
         // println!("{:#?}\n", res.unwrap_json_value());
         assert!(res.unwrap_json_value().eq("root"));
     }
 
     #[test]
     fn test_add_supporter() {
-      let (master_account, proposal) = init();
-      
-      call!(
-        master_account,
-        proposal.initialize()
-      );
-      
-      let added = call!(
-        master_account,
-        proposal.add_supporter(),
-        deposit = to_yocto("1.5")
-      );
-    
-      println!("{:#?}\n", added);
-      
-      let res = call!(
-        master_account,
-        proposal.get_funding()
-      );
+        let (master_account, proposal) = init();
 
-      
-      println!("{:#?}\n", res);
-      println!("{:#?}\n", res.unwrap_json_value());
-      // assert!(res.unwrap_json_value().eq("root"));
-      
+        // let account = runtime.view_account(&"root").unwrap();
+
+        println!("{:#?}\n", account);
+
+        call!(
+            master_account,
+            proposal.initialize(),
+            deposit = to_yocto("3")
+        );
+
+        call!(
+            master_account,
+            proposal.configure(
+                "some proposal",
+                "really tho",
+                to_yocto("10").into(),
+                to_yocto("3").into()
+            )
+        );
+
+        // call!(
+        //     master_account,
+        //     proposal.add_supporter(),
+        //     deposit = to_yocto("5")
+        // );
+
+        let added = call!(
+            master_account,
+            proposal.add_supporter(),
+            deposit = to_yocto("6")
+        );
+
+        println!("{:#?}\n", added);
+
+        let total = call!(master_account, proposal.get_funding_total());
+        println!("{:#?}\n", total);
+
+        // println!("{:#?}\n", res.unwrap_json_value());
+        // assert!(res.unwrap_json_value().eq("root"));
     }
 }
