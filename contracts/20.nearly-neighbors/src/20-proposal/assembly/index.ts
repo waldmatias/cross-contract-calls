@@ -1,5 +1,5 @@
 // @nearfile out
-import { u128, context, storage, PersistentVector, PersistentSet, ContractPromise } from "near-sdk-as"
+import { u128, context, storage, PersistentVector, PersistentSet, ContractPromise, logging } from "near-sdk-as"
 
 type AccountId = string
 
@@ -62,7 +62,7 @@ const PROPOSAL_KEY = "state"
 
 export function initialize(): void {
   assert(!is_initialized(), "Contract is already initialized.")
-  assert(u128.ge(context.attachedDeposit, MIN_ACCOUNT_BALANCE), "MIN_ACCOUNT_BALANCE must be attache to initialize (3 NEAR)")
+  assert(u128.ge(context.attachedDeposit, MIN_ACCOUNT_BALANCE), "MIN_ACCOUNT_BALANCE must be attached to initialize (3 NEAR)")
   // setup basic proposal structure
   const proposal = new Proposal(context.predecessor)
 
@@ -136,6 +136,7 @@ export function add_supporter(): void {
 
   const account = context.sender
 
+  return
   // const supporter = new Supporter(account, amount, coordinates)
   const supporter = new Supporter(account, amount)
   supporters.push(supporter)
@@ -165,7 +166,7 @@ function add_funding(amount: u128): void {
   const proposal = get_proposal()
   const funding = proposal.funding!
 
-  funding.total = u128.sub(new_amount, MIN_ACCOUNT_BALANCE)
+  funding.total = new_amount
   funding.funded = u128.ge(funding.total, funding.goal)
   proposal.funding = funding // is this line necessary or is the reference maintained?  i think it's maintained and this is not needed
 
@@ -185,13 +186,16 @@ function toNEAR(amount: u128): string {
 function create_project(): void {
   const proposal = get_proposal()
   const projectBudget = u128.sub(context.accountBalance, MIN_ACCOUNT_BALANCE)
+  logging.log(context.accountBalance)
+  logging.log(MIN_ACCOUNT_BALANCE)
+  logging.log(projectBudget)
 
   ContractPromise.create(
     proposal.factory,         // target contract account name
     "create_project",         // target method name
     proposal.details,         // target method arguments
     XCC_GAS,                  // gas attached to the call (~5 Tgas (5e12) per "hop")
-    projectBudget             // deposit attached to the call
+    // projectBudget             // deposit attached to the call
   )
 }
 
