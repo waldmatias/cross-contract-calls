@@ -39,7 +39,7 @@ class ProposalDetails {
 class Supporter {
   constructor(
     public account: AccountId,
-    public amount: u128,
+    public amount: u128
     // public coordinates: GeoCoords
   ) { }
 }
@@ -51,8 +51,6 @@ class GeoCoords {
     public longitude: string
   ) { }
 }
-
-const supporters = new PersistentVector<Supporter>('s')
 
 const PROPOSAL_KEY = "state"
 
@@ -126,27 +124,27 @@ export function toString(): string {
 // export function add_supporter(coordinates: GeoCoords): void {
 export function add_supporter(): void {
   assert(is_configured(), "Contract must be configured first.")
-
-  // TODO: add assertion for is_configured
   assert(!is_fully_funded(), "Proposal is already fully funded.")
 
   const amount = context.attachedDeposit
+  const account = context.sender
+
   const proposal = get_proposal()
   assert(u128.ge(context.attachedDeposit, proposal.funding!.min_deposit), "Please attach minimum deposit of [" + toNEAR(proposal.funding!.min_deposit) + "] NEAR")
 
-  const account = context.sender
+  const supporters = new PersistentVector<Supporter>('s')
 
-  return
-  // const supporter = new Supporter(account, amount, coordinates)
   const supporter = new Supporter(account, amount)
   supporters.push(supporter)
 
-  add_funding(amount)
+  // TODO: make this work
+  // add_funding(amount)
 }
 
 export function list_supporters(): PersistentVector<Supporter> {
   assert(is_configured(), "Contract must be configured first.")
 
+  const supporters = new PersistentVector<Supporter>('s')
   return supporters
 }
 
