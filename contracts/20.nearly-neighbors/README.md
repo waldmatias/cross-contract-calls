@@ -10,7 +10,7 @@ Contracts
 ## TODOs
 
 - [ ] @amgando Figure out params & return types for simulation tests
-- [ ] @tannerwelsh Wireframes for dApp UI
+- [x] @tannerwelsh Wireframes for dApp UI: https://balsamiq.cloud/s941xrq/p6p4jsx/rF27B [NEARly Neighbors.pdf](https://github.com/near-examples/cross-contract-calls/files/5748989/NEARly.Neighbors.pdf)
     - log in w/ near
     - create proposal
     - configure proposal
