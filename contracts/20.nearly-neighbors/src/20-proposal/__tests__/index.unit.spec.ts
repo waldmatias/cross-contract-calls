@@ -36,6 +36,7 @@ const doConfigure = (): void => {
 };
 
 const initAndConfig = (): void => {
+  log('inside initAndConfig')
   attachMinDeposit();
   doInitialize();
   doConfigure();
@@ -102,6 +103,24 @@ describe("20.nearly-neighbors.proposal", () => {
       });
     });
 
+    describe("resave_proposal(Proposal): void", () => {
+      it("updates the stored proposal data", () => {
+        const proposal = contract.get_proposal();
+
+        expect(proposal.details!.title).toBe(title);
+        const newTotal = u128.mul(ONE_NEAR, u128.from(4))
+        proposal.details!.title = 'new title';
+        proposal.funding!.total = newTotal
+
+        expect(contract.get_proposal().details!.title).not.toBe('new title');
+        expect(contract.get_proposal().funding!.total).not.toBe(newTotal);
+        contract.resave_proposal(proposal);
+        expect(contract.get_proposal().funding!.total).toBe(newTotal);
+        expect(contract.get_proposal().details!.title).toBe('new title');
+        expect(contract.get_funding_total()).toBe(newTotal)
+      })
+    })
+
     describe("get_funding_total(): u128", () => {
       it("returns the current funding amount (accounting for MIN_ACCOUNT_BALANCE)", () => {
         expect(contract.get_funding_total()).toBe(u128.from(0));
@@ -118,42 +137,47 @@ describe("20.nearly-neighbors.proposal", () => {
       it("adds the signer + deposit to the list of supporters", () => {
         expect(contract.list_supporters().length).toBe(0);
 
+        log('before add_supporter')
         attachDeposit(4)
-        VMContext.setSigner_account_id("carol");
+        VMContext.setSigner_account_id("cc");
+
         contract.add_supporter();
 
         const supporters = contract.list_supporters();
         expect(supporters.length).toBe(1);
-        expect(supporters[0].account).toBe("carol");
+        expect(supporters[0].account).toBe("cc");
         expect(supporters[0].amount).toBe(u128.mul(ONE_NEAR, u128.from(4)));
+
+        expect(contract.get_funding_total()).toBe(u128.mul(ONE_NEAR, u128.from(4)))
       });
 
-      // TODO: implement these tests
-      xit("updates the funding total", () => {
+      it("updates the funding total", () => {
+        expect(contract.list_supporters().length).toBe(0);
         expect(contract.get_funding_total()).toBe(u128.from(0))
 
-        attachDeposit(3)
+        attachMinDeposit()
         VMContext.setSigner_account_id('carol')
         contract.add_supporter()
 
+        expect(contract.list_supporters().length).toBe(1);
         expect(contract.get_funding_total()).toBe(min_deposit)
       })
     });
   });
 
-  describe("when not initialized", () => {
-    beforeEach(attachMinDeposit)
+  // describe("when not initialized", () => {
+  //   beforeEach(attachMinDeposit)
 
-    test("initialize() is idempotent; will throw if already initialized", () => {
-      doInitialize();
+  //   test("initialize() is idempotent; will throw if already initialized", () => {
+  //     doInitialize();
 
-      expect(doInitialize).toThrow();
-    });
+  //     expect(doInitialize).toThrow();
+  //   });
 
-    test("configure() throws", () => {
-      expect(doConfigure).toThrow();
-    });
-  });
+  //   test("configure() throws", () => {
+  //     expect(doConfigure).toThrow();
+  //   });
+  // });
 
   // describe("when not configured", () => {
   //   beforeAll(doInitialize);

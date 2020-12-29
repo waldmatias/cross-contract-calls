@@ -59,6 +59,9 @@ const PROPOSAL_KEY = "state"
 // ----------------------------------------------------------------------------
 
 export function initialize(): void {
+  logging.log(context.attachedDeposit)
+  logging.log(MIN_ACCOUNT_BALANCE)
+  logging.log(u128.ge(context.attachedDeposit, MIN_ACCOUNT_BALANCE))
   assert(!is_initialized(), "Contract is already initialized.")
   assert(u128.ge(context.attachedDeposit, MIN_ACCOUNT_BALANCE), "MIN_ACCOUNT_BALANCE must be attached to initialize (3 NEAR)")
   // setup basic proposal structure
@@ -104,7 +107,8 @@ export function get_funding_total(): u128 {
 
 export function is_fully_funded(): bool {
   assert(is_configured(), "Contract must be configured first.")
-  const funding = get_funding_total()
+  // const funding = get_funding_total()
+  const funding = u128.Zero
   const goal = get_proposal().funding!.goal
   return u128.ge(funding, goal)
 }
@@ -121,7 +125,6 @@ export function toString(): string {
   return "title: [" + proposal.details!.title + "]"
 }
 
-// export function add_supporter(coordinates: GeoCoords): void {
 export function add_supporter(): void {
   assert(is_configured(), "Contract must be configured first.")
   assert(!is_fully_funded(), "Proposal is already fully funded.")
@@ -137,8 +140,7 @@ export function add_supporter(): void {
   const supporter = new Supporter(account, amount)
   supporters.push(supporter)
 
-  // TODO: make this work
-  // add_funding(amount)
+  add_funding(amount)
 }
 
 export function list_supporters(): PersistentVector<Supporter> {
@@ -166,9 +168,11 @@ function add_funding(amount: u128): void {
 
   funding.total = new_amount
   funding.funded = u128.ge(funding.total, funding.goal)
-  proposal.funding = funding // is this line necessary or is the reference maintained?  i think it's maintained and this is not needed
+  // proposal.funding = funding // is this line necessary or is the reference maintained?  i think it's maintained and this is not needed
 
-  resave_proposal(proposal)
+  // FIXME: why does this fail?
+  // > panicked at 'called `Result::unwrap()` on an `Err` value: InconsistentStateError(IntegerOverflow)', /Users/willem/.cargo/git/checkouts/near-sdk-rs-7ba52202f378a9d9/4ffe99c/near-sdk/src/environment/mocked_blockchain.rs:409:14
+  // resave_proposal(proposal)
 
   if (funding.funded) {
     create_project()
@@ -197,7 +201,7 @@ function create_project(): void {
   )
 }
 
-function resave_proposal(proposal: Proposal): void {
+export function resave_proposal(proposal: Proposal): void {
   storage.set(PROPOSAL_KEY, proposal)
 }
 
