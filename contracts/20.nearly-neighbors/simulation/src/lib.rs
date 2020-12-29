@@ -28,37 +28,35 @@ mod test {
             // Bytes of contract
             bytes: &PROPOSAL_WASM_BYTES,
             // User deploying the contract,
-            signer_account: master_account,
-            deposit: to_yocto("10")
+            signer_account: master_account
+        );
+
+        // a supporter will be interested in funding this account
+        let supporter_account_id = "alice".to_string();
+        let alice = InMemorySigner::from_seed(
+            &supporter_account_id,
+            KeyType::ED25519,
+            &supporter_account_id,
         );
 
         (master_account, proposal_contract)
     }
-    // #[test]
-    // fn test_create_account() {
-    //     let initial_balance = to_yocto(STORAGE_AMOUNT);
-    //     let (master_account, linkdrop) = init(initial_balance);
-    //     let pk: Base58PublicKey = "qSq3LoufLvTCTNGC3LJePMDGrok8dHMQ5A1YD9psbiz"
-    //     .try_into()
-    //     .unwrap();
-    //     let res = call!(
-    //         master_account,
-    //         linkdrop.create_account("bob", "qSq3LoufLvTCTNGC3LJePMDGrok8dHMQ5A1YD9psbiz")
-    //     );
-    //     println!("{:#?}\n{:#?}\n{:#?}\n", res, res.promise_results(), res.unwrap_json::<String>());
-    // }
 
     #[test]
     fn test_initialize() {
         let (master_account, proposal) = init();
-        let res = call!(
-            master_account,
-            proposal.initialize(),
-            deposit = to_yocto("3")
-        );
+
+        let factory_account_id = "proposal".to_string();
+        let factory2 =
+            InMemorySigner::from_seed(&factory_account_id, KeyType::ED25519, &factory_account_id);
+
+        let factory = proposal.user_account.switch_signer(factory2.into());
+        // a factory account will generate this proposal.  we can pretend this happens here
+
+        let res = call!(factory, proposal.initialize(), deposit = to_yocto("3"));
         // println!("{:#?}\n{:#?}\n{:#?}\n", res, res.promise_results(), res.unwrap_json::<String>());
-        // println!("{:#?}\n", res);
-        res.assert_success()
+        println!("{:#?}\n", res);
+        // res.assert_success()
     }
 
     #[test]
@@ -80,9 +78,9 @@ mod test {
     fn test_add_supporter() {
         let (master_account, proposal) = init();
 
+        // master_account.account().
         // let account = runtime.view_account(&"root").unwrap();
-
-        println!("{:#?}\n", account);
+        // println!("{:#?}\n", account);
 
         call!(
             master_account,
