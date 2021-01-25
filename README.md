@@ -2,6 +2,12 @@
 
 This repo is a collection of examples using cross-contract calls on the NEAR platform
 
+## Contracts
+
+- [Orientation](./contracts/00.orientation/README.md)
+- [Linkdrop](./contracts/10.linkdrop/README.md)
+- [NEARly Neighbors](./contracts/20.nearly-neighbors/README.md)
+
 ## Organization
 
 The folder structure of this repo is organized around a series of lessons about making cross contract calls.
@@ -19,6 +25,12 @@ Later lessons build on the basics with more releastic (and naturally more compli
 
 ```sh
 10.linkdrop                   # a more complete example of using cross contract calls in a real world use case
+```
+
+Other contracts act as **dApp seeds** - fully-functional families of contracts along with UI wireframes which devs can use as a foundation on which to build their own applications.
+
+```sh
+20.nearly-neighbors           # a family of contracts to enable crowd-sourced civic development
 ```
 
 Each of these contracts is designed to be self-contained and so may be extracted into your own projects and used as a starting point.  If you do decide to use this code, please pay close attention to all top level files including:
