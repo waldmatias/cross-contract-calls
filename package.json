@@ -17,7 +17,7 @@
     "build:02": "yarn build -d contracts/02.using-multiple-calls/src/02",
     "build:03": "yarn build -d contracts/03.using-callbacks/src/03",
     "build:10": "yarn build -d contracts/10.linkdrop/src/10",
-    "build:20": "yarn build -d contracts/20.nearly-neighbors/src/20-factory && yarn build -d contracts/20.nearly-neighbors/src/20-proposal",
+    "build:20": "yarn build -d contracts/20.nearly-neighbors/src/20-factory && yarn build -d contracts/20.nearly-neighbors/src/20-proposal && yarn build -d contracts/20.nearly-neighbors/src/20-project",
     "build": "asb --target debug",
     "build:release": "asb",
     "test": "yarn test:unit && yarn test:simulate",
