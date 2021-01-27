@@ -22,7 +22,8 @@
     "build:release": "asb",
     "test": "yarn test:unit && yarn test:simulate",
     "test:simulate": "yarn build:release && cargo test -- --nocapture",
-    "clean": "rm -rf ./build"
+    "clean": "rm -rf ./build",
+    "test:debug": "node --inspect-brk ./node_modules/.bin/asp"
   },
   "keywords": [],
   "author": "hello@near.org",

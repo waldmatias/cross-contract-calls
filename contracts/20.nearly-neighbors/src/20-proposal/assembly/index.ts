@@ -155,7 +155,7 @@ export function list_supporters(): PersistentVector<Supporter> {
 // ----------------------------------------------------------------------------
 
 function is_initialized(): bool {
-  return !!storage.hasKey(PROPOSAL_KEY)
+  return storage.hasKey(PROPOSAL_KEY)
 }
 
 
@@ -168,11 +168,8 @@ function add_funding(amount: u128): void {
 
   funding.total = new_amount
   funding.funded = u128.ge(funding.total, funding.goal)
-  // proposal.funding = funding // is this line necessary or is the reference maintained?  i think it's maintained and this is not needed
 
-  // FIXME: why does this fail?
-  // > panicked at 'called `Result::unwrap()` on an `Err` value: InconsistentStateError(IntegerOverflow)', /Users/willem/.cargo/git/checkouts/near-sdk-rs-7ba52202f378a9d9/4ffe99c/near-sdk/src/environment/mocked_blockchain.rs:409:14
-  // resave_proposal(proposal)
+  resave_proposal(proposal)
 
   if (funding.funded) {
     create_project()

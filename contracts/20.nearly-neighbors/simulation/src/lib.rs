@@ -98,11 +98,11 @@ mod test {
             )
         );
 
-        // call!(
-        //     master_account,
-        //     proposal.add_supporter(),
-        //     deposit = to_yocto("5")
-        // );
+        call!(
+            master_account,
+            proposal.add_supporter(),
+            deposit = to_yocto("5")
+        );
 
         let added = call!(
             master_account,
