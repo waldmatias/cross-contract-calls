@@ -69,10 +69,10 @@ class Contribution {
 
 @nearBindgen
 class TaskStatus {
-  public static BLOCKED: i32 = -1;
-  public static ASSIGNED: i32 = 0;
-  public static IN_PROGRESS: i32 = 1;
-  public static COMPLETED: i32 = 3;
+  public BLOCKED: i8 = 0;
+  public ASSIGNED: i8 = 1;
+  public IN_PROGRESS: i8 = 2;
+  public COMPLETED: i8 = 4;
 }
 
 const PROJECT_KEY = "state"
