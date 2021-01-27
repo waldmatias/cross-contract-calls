@@ -122,7 +122,7 @@ export function initialize(): void {
     u128.ge(context.attachedDeposit, MIN_ACCOUNT_BALANCE),
     'MIN_ACCOUNT_BALANCE must be attached to initialize (3 NEAR)'
   );
-  // setup basic proposal structure
+
   const proposal = new Proposal(context.predecessor);
 
   resave_proposal(proposal);
@@ -143,7 +143,8 @@ export function configure(
   goal: u128,
   min_deposit: u128
 ): void {
-  assert(is_initialized(), 'Contract must be initialized first.');
+  assert_initialized();
+
   const proposal = get_proposal();
   proposal.details = new ProposalDetails(title, description, context.sender);
   proposal.funding = new ProposalFunding(goal, min_deposit);
@@ -158,20 +159,9 @@ export function configure(
  * Gets the proposal from storage.
  */
 export function get_proposal(): Proposal {
-  assert(is_initialized(), 'Contract must be initialized first.');
-  return storage.getSome<Proposal>(PROPOSAL_KEY);
-}
+  assert_initialized();
 
-/**
- * @function is_configured
- * @returns {bool}
- *
- * True if configure() has already been successfully called, otherwise false.
- * Allows UX to block proposal details page until fully configured.
- */
-export function is_configured(): bool {
-  assert(is_initialized(), 'Contract must be initialized first.');
-  return !!get_proposal().details;
+  return storage.getSome<Proposal>(PROPOSAL_KEY);
 }
 
 /**
@@ -181,7 +171,7 @@ export function is_configured(): bool {
  * The account ID of the factory that created this proposal.
  */
 export function get_factory(): AccountId {
-  assert(is_initialized(), 'Contract must be initialized first.');
+  assert_initialized();
 
   return get_proposal().factory;
 }
@@ -193,10 +183,23 @@ export function get_factory(): AccountId {
  * The current total funding accumulated.
  */
 export function get_funding_total(): u128 {
-  assert(is_configured(), 'Contract must be configured first.');
+  assert_configured();
 
   const proposal = storage.get<Proposal>(PROPOSAL_KEY)!;
   return proposal.funding!.total;
+}
+
+/**
+ * @function is_configured
+ * @returns {bool}
+ *
+ * True if configure() has already been successfully called, otherwise false.
+ * Allows UX to block proposal details page until fully configured.
+ */
+export function is_configured(): bool {
+  assert_initialized();
+
+  return !!get_proposal().details;
 }
 
 /**
@@ -206,7 +209,8 @@ export function get_funding_total(): u128 {
  * Whether or not total is at or above the goal.
  */
 export function is_fully_funded(): bool {
-  assert(is_configured(), 'Contract must be configured first.');
+  assert_configured();
+
   const funding = get_funding_total();
   const goal = get_proposal().funding!.goal;
   return u128.ge(funding, goal);
@@ -226,10 +230,9 @@ export function is_fully_funded(): bool {
  *   'common-grounds.project.neighborly.testnet'
  */
 export function toString(): string {
-  assert(is_configured(), 'Contract must be configured first.');
+  assert_configured();
 
   const proposal = get_proposal();
-
   return 'title: [' + proposal.details!.title + ']';
 }
 
@@ -241,7 +244,7 @@ export function toString(): string {
  * minimum deposit.
  */
 export function add_supporter(): void {
-  assert(is_configured(), 'Contract must be configured first.');
+  assert_configured();
   assert(!is_fully_funded(), 'Proposal is already fully funded.');
 
   const amount = context.attachedDeposit;
@@ -256,10 +259,8 @@ export function add_supporter(): void {
   );
 
   const supporters = new PersistentVector<Supporter>('s');
-
   const supporter = new Supporter(account, amount);
   supporters.push(supporter);
-
   add_funding(amount);
 }
 
@@ -270,7 +271,7 @@ export function add_supporter(): void {
  * All current supporters of the proposal.
  */
 export function list_supporters(): PersistentVector<Supporter> {
-  assert(is_configured(), 'Contract must be configured first.');
+  assert_configured();
 
   const supporters = new PersistentVector<Supporter>('s');
   return supporters;
@@ -281,13 +282,6 @@ export function list_supporters(): PersistentVector<Supporter> {
  *
  * Not to be called outside of this proposal.
  */
-
-/**
- * Whether or not the project has been initialized.
- */
-function is_initialized(): bool {
-  return storage.hasKey(PROPOSAL_KEY);
-}
 
 /**
  * Updates the funding total by amount given.
@@ -318,7 +312,7 @@ function add_funding(amount: u128): void {
  */
 function create_project(): void {
   const proposal = get_proposal();
-  const projectBudget = u128.sub(context.accountBalance, MIN_ACCOUNT_BALANCE);
+  // const projectBudget = u128.sub(context.accountBalance, MIN_ACCOUNT_BALANCE);
 
   ContractPromise.create(
     proposal.factory, // target contract account name
@@ -334,4 +328,25 @@ function create_project(): void {
  */
 export function resave_proposal(proposal: Proposal): void {
   storage.set(PROPOSAL_KEY, proposal);
+}
+
+/**
+ * Whether or not the project has been initialized.
+ */
+function is_initialized(): bool {
+  return storage.hasKey(PROPOSAL_KEY);
+}
+
+/**
+ * Guard against contract not having been initialized.
+ */
+function assert_initialized(): void {
+  assert(is_initialized(), 'Contract must be initialized first.');
+}
+
+/**
+ * Guard against contract not having been configured.
+ */
+function assert_configured(): void {
+  assert(is_configured(), 'Contract must be configured first.');
 }
