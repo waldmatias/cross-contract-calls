@@ -69,10 +69,10 @@ ansi-styles@^4.0.0, ansi-styles@^4.1.0:
   dependencies:
     color-convert "^2.0.1"
 
-as-bignum@^0.2.4:
-  version "0.2.8"
-  resolved "https://registry.yarnpkg.com/as-bignum/-/as-bignum-0.2.8.tgz#46ac7a14cf9df951aa3fb850f1db44c0083d4e69"
-  integrity sha512-tac9YOYKDLlkiVFiucTsHRIEzd+LawAHfmxqucnfZmZ6TH4DGMzMBw5A6Zex0YWGNLaLHtPz/5z8nA5yyXryNg==
+as-bignum@^0.2.10:
+  version "0.2.10"
+  resolved "https://registry.yarnpkg.com/as-bignum/-/as-bignum-0.2.10.tgz#cba10a318d2eb731709220db47455fb430c4621d"
+  integrity sha512-uTB/06+xoAQSzVlF/8CQHhbIrdEet6oqjIrZ7RemWGeIDdjwHOyra9cyjedmf0UpcyHp0kY82zKab0fLNTxcvQ==
 
 asbuild@^0.0.10:
   version "0.0.10"
@@ -87,9 +87,9 @@ assemblyscript-json@^0.3.3:
   integrity sha512-TTYZK3rbfan7w5i0lv7bZS4rlXNDe8r/38kjzrQqF6dJaSE/fqSJOnpHsiBTtRgwkLRPL0NAen7ItD/3j9I6eg==
 
 assemblyscript@^0.17.3:
-  version "0.17.11"
-  resolved "https://registry.yarnpkg.com/assemblyscript/-/assemblyscript-0.17.11.tgz#dfc7559c26e05d6302dafc88cf2f2071f9538fe7"
-  integrity sha512-mynMSe3DOYKI2MsIdD5WSMOD8Gggt2PVVaVfVvFvpCpslJb5YMKCtcSe2pgd74+X2duHox9xg5jBgiYXjBBXTQ==
+  version "0.17.14"
+  resolved "https://registry.yarnpkg.com/assemblyscript/-/assemblyscript-0.17.14.tgz#9ea4a04a50dc53042b35d492fff947101ae00248"
+  integrity sha512-TLuwNvZAIH26wu2puKpAJokzLp10kJkVXxbgDjFFmbW9VF/qg7rkmi0hjsiu41bjoH1UaVgY4vYvbbUeOHtKyg==
   dependencies:
     binaryen "98.0.0-nightly.20201109"
     long "^4.0.0"
@@ -374,37 +374,36 @@ ms@2.0.0:
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
   integrity sha1-VgiurfwAvmwpAd9fmGF4jeDVl8g=
 
-near-mock-vm@^2.2.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/near-mock-vm/-/near-mock-vm-2.2.0.tgz#0a173a3e85a9e3bc70729ecbf1651d482feb8e69"
-  integrity sha512-SAe9I9VaSHdFtZ0dD1yRJJDcJTGjdkCmZ2C/WH47kGRcZR0hCbp85F1DkY0EbHTCDP05gwpurn1QM6NMNSYYXQ==
-
+near-mock-vm@^2.2.3:
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/near-mock-vm/-/near-mock-vm-2.2.3.tgz#16a212b77d1bac78357711019ea28f5600d6281e"
+  integrity sha512-kx/Aa+GumvZoK+3i6IXzS8NGqbR7p+m2Sn5AF9hTrMRhFZ9O11V9HPMER6hO9WumjwicTFXY0pFkXwxZsWRcsQ==
   dependencies:
     "@assemblyscript/loader" "^0.9.4"
     yargs "^15.3.1"
 
 near-sdk-as@^2.2.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/near-sdk-as/-/near-sdk-as-2.2.0.tgz#d91dfb9924b48f3dd76fc7f8d9e50eceaad326ae"
-  integrity sha512-HzIdo6JYKdYNkQkB9+TQ4phkFLkr+GvhG16VXYOpmB1y0FkRV2qdKEVuXd9Cr26vD4DEG5AjHSsAULAUcq4tnA==
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/near-sdk-as/-/near-sdk-as-2.2.3.tgz#6191be45a36e7aff56e1c8ef67459eac09e3f5b0"
+  integrity sha512-BJjeR+5ZrWYmwbac+2rH1bEn4wbKkP3QVtDG85V3t4mlFR0nv4S5TBgIxUv+FA/KCdrQIZ3qm0PerPK1x18J3Q==
   dependencies:
-    near-mock-vm "^2.2.0"
-    near-sdk-bindgen "^2.2.0"
-    near-sdk-core "^2.2.0"
-    near-sdk-simulator "^2.2.0"
+    near-mock-vm "^2.2.3"
+    near-sdk-bindgen "^2.2.3"
+    near-sdk-core "^2.2.3"
+    near-sdk-simulator "^2.2.3"
 
-near-sdk-bindgen@^2.2.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/near-sdk-bindgen/-/near-sdk-bindgen-2.2.0.tgz#0ba68e6da3958ca90aa6fe6c8f450f04ac8c2a1e"
-  integrity sha512-pqhXEqRT6H0vBBkuegwPWjUM6GlKaaUFYwG09iIlRM0cJsVyDCSJGbpOGfbOMgb2y7STvrdsrrP6t6CbdPdBvw==
+near-sdk-bindgen@^2.2.3:
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/near-sdk-bindgen/-/near-sdk-bindgen-2.2.3.tgz#57a0b54e081f939fa656cf47b05e6a9e3dbf0765"
+  integrity sha512-qvbgnW3FulGa+/8t+vu1fJzPZ9cikAHhvb/GGwgDwyTvCRdlQyjXtizfDDpLEKCZENeRbkzVBgllyAcM3Xs17w==
 
-near-sdk-core@^2.2.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/near-sdk-core/-/near-sdk-core-2.2.0.tgz#82dd4f44bbc4dad636f3c58ef03a87f83b15a29f"
-  integrity sha512-DfApiiZmX6s3m1JJ+ZBYwPCMb0estlZ1eMgt7mDi8ltfYGLjvWSNvVXky2US04coA0ziMJmdgbQ8Lvodx/F+zQ==
+near-sdk-core@^2.2.3:
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/near-sdk-core/-/near-sdk-core-2.2.3.tgz#f4e4f3e6071f77cf3863127a2a8f2a0cc0154b05"
+  integrity sha512-96YOXseSDpB9uq1HfG9xjWIyMC2VXlLivEQX8/UJdm36JCssXoTn3h12QypYAVVYDpwe8vyU5qC7vX4ULTQkSQ==
   dependencies:
     "@as-pect/cli" "^5.0.0"
-    as-bignum "^0.2.4"
+    as-bignum "^0.2.10"
     asbuild "^0.0.10"
     assemblyscript "^0.17.3"
     assemblyscript-json "^0.3.3"
@@ -414,10 +413,10 @@ near-sdk-core@^2.2.0:
     near-vm "^1.1.0"
     visitor-as "^0.3.2"
 
-near-sdk-simulator@^2.2.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/near-sdk-simulator/-/near-sdk-simulator-2.2.0.tgz#02b13fa86de0c1b27fed242de1b2df7cedbc11d9"
-  integrity sha512-LTvinLxa4Fm2/4LORkPx6D7sC+UZTAZWyCG3SbuXY9aONbhriczAgLmnzjA0EC7UFSnB5Ss9QfRIV4/ZOvoIvw==
+near-sdk-simulator@^2.2.3:
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/near-sdk-simulator/-/near-sdk-simulator-2.2.3.tgz#800752d47bd20e449ff58749a03174bc943cd1b6"
+  integrity sha512-71PhcGel+c/URvvazktjYzq/HONEfXDrqowgi7kDudCZHO1E4SRc1wfvGTvOgV1bswVVqzbrIIxKLd0REBsEkg==
 
 near-vm@^1.1.0:
   version "1.1.0"
@@ -619,9 +618,9 @@ wrappy@1:
   integrity sha1-tSQ9jz7BqjXxNkYFvA0QNuMKtp8=
 
 y18n@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/y18n/-/y18n-4.0.0.tgz#95ef94f85ecc81d007c264e190a120f0a3c8566b"
-  integrity sha512-r9S/ZyXu/Xu9q1tYlpsLIsa3EeLXXk0VwlxqTcFRfg9EhMW+17kbt9G0NrgCmhGb5vT2hyhJZLfDGx+7+5Uj/w==
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/y18n/-/y18n-4.0.1.tgz#8db2b83c31c5d75099bb890b23f3094891e247d4"
+  integrity sha512-wNcy4NvjMYL8gogWWYAO7ZFWFfHcbdbE57tZO8e4cbpj8tfUcwrwqSl3ad8HxpYWCdXcJUCeKKZS62Av1affwQ==
 
 yallist@^4.0.0:
   version "4.0.0"
