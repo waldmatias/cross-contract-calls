@@ -12,6 +12,11 @@ export const XCC_GAS = 5000000000000;
 export const MIN_ACCOUNT_BALANCE = u128.mul(ONE_NEAR, u128.from(3));
 
 /**
+ * == TYPES ====================================================================
+ */
+export type AccountId = string;
+
+/**
  * == FUNCTIONS ================================================================
  */
 

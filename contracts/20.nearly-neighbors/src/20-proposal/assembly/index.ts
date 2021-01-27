@@ -7,7 +7,7 @@ import {
   ContractPromise,
 } from 'near-sdk-as';
 
-import { XCC_GAS, MIN_ACCOUNT_BALANCE, asNEAR } from '../../utils';
+import { XCC_GAS, MIN_ACCOUNT_BALANCE, AccountId, asNEAR } from '../../utils';
 
 /**
  * >>>>> Proposal Contract <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -41,8 +41,6 @@ const PROPOSAL_KEY = 'nn';
  *
  * Types & data models used by the contract.
  */
-
-type AccountId = string;
 
 /**
  * @class Proposal
