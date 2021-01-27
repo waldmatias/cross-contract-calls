@@ -5,7 +5,6 @@ import {
   storage,
   PersistentVector,
   ContractPromise,
-  logging,
 } from 'near-sdk-as';
 
 /**
@@ -83,7 +82,6 @@ class ProposalFunding {
   ) {}
 }
 
-
 /**
  * @class ProposalDetails
  * @property title        - proposal name
@@ -108,10 +106,7 @@ class ProposalDetails {
  */
 @nearBindgen
 class Supporter {
-  constructor(
-    public account: AccountId,
-    public amount: u128
-  ) {}
+  constructor(public account: AccountId, public amount: u128) {}
 }
 
 /**
@@ -126,9 +121,6 @@ class Supporter {
  * Sets up and stores new Proposal.
  */
 export function initialize(): void {
-  logging.log(context.attachedDeposit);
-  logging.log(MIN_ACCOUNT_BALANCE);
-  logging.log(u128.ge(context.attachedDeposit, MIN_ACCOUNT_BALANCE));
   assert(!is_initialized(), 'Contract is already initialized.');
   assert(
     u128.ge(context.attachedDeposit, MIN_ACCOUNT_BALANCE),
@@ -219,7 +211,7 @@ export function get_funding_total(): u128 {
  */
 export function is_fully_funded(): bool {
   assert(is_configured(), 'Contract must be configured first.');
-  const funding = get_funding_total()
+  const funding = get_funding_total();
   const goal = get_proposal().funding!.goal;
   return u128.ge(funding, goal);
 }
@@ -338,9 +330,6 @@ function toNEAR(amount: u128): string {
 function create_project(): void {
   const proposal = get_proposal();
   const projectBudget = u128.sub(context.accountBalance, MIN_ACCOUNT_BALANCE);
-  logging.log(context.accountBalance);
-  logging.log(MIN_ACCOUNT_BALANCE);
-  logging.log(projectBudget);
 
   ContractPromise.create(
     proposal.factory, // target contract account name
