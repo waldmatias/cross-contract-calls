@@ -14,7 +14,7 @@ mod test {
     // Load in contract bytes
     near_sdk_sim::lazy_static! {
     //   static ref FACTORY_WASM_BYTES: &'static [u8] = include_bytes!("../../../../build/debug/20-factory.wasm").as_ref();
-      static ref PROPOSAL_WASM_BYTES: &'static [u8] = include_bytes!("../../../../build/debug/20-proposal.wasm").as_ref();
+      static ref PROPOSAL_WASM_BYTES: &'static [u8] = include_bytes!("../../../../build/release/20-proposal.wasm").as_ref();
     }
 
     fn init() -> (UserAccount, ContractAccount<ProposalContract>) {
