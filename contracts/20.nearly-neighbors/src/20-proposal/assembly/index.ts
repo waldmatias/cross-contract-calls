@@ -7,6 +7,8 @@ import {
   ContractPromise,
 } from 'near-sdk-as';
 
+import { XCC_GAS, MIN_ACCOUNT_BALANCE, asNEAR } from '../../utils';
+
 /**
  * >>>>> Proposal Contract <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
  *
@@ -30,14 +32,8 @@ import {
 /**
  * == CONSTANTS ================================================================
  *
- * ONE_NEAR = unit of NEAR token in yocto NEAR (1e24)
- * XCC_GAS = gas for cross contract calls, ~5 Tgas (teragas = 1e12) per "hop"
- * MIN_ACCOUNT_BALANCE = 3 NEAR min to keep account alive via storage staking
  * PROPOSAL_KEY = key used to identify proposal object in storage
  */
-const ONE_NEAR = u128.from('1000000000000000000000000');
-const XCC_GAS = 5000000000000;
-const MIN_ACCOUNT_BALANCE = u128.mul(ONE_NEAR, u128.from(3));
 const PROPOSAL_KEY = 'nn';
 
 /**
@@ -255,7 +251,7 @@ export function add_supporter(): void {
   assert(
     u128.ge(context.attachedDeposit, proposal.funding!.min_deposit),
     'Please attach minimum deposit of [' +
-      toNEAR(proposal.funding!.min_deposit) +
+      asNEAR(proposal.funding!.min_deposit) +
       '] NEAR'
   );
 
@@ -313,13 +309,6 @@ function add_funding(amount: u128): void {
   if (funding.funded) {
     create_project();
   }
-}
-
-/**
- * Helper for converting an amount into yoctoNEAR notation (e.g. 50e24 becomes 50).
- */
-function toNEAR(amount: u128): string {
-  return u128.div(amount, ONE_NEAR).toString();
 }
 
 /**
