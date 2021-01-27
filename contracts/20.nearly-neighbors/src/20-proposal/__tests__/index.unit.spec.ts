@@ -48,12 +48,14 @@ describe('20.nearly-neighbors.proposal', () => {
   describe('initialize(): void', () => {
     it('creates a new proposal, storing the factory account ID (predecessor)', () => {
       attachMinDeposit();
-      doInitialize();
+      contract.initialize();
       expect(contract.get_factory()).toBe(FACTORY_ACCOUNT_ID);
     });
 
     it('requires a minimum deposit be attached', () => {
-      expect(doInitialize).toThrow();
+      expect(() => {
+        contract.initialize();
+      }).toThrow();
     });
   });
 
