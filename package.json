@@ -13,7 +13,6 @@
     "test:u:10": "yarn asp -f 10.*unit.spec",
     "test:u:20": "yarn asp -f 20.*unit.spec",
     "build:00": "yarn build -d contracts/00.orientation/src/00-local && yarn build -d contracts/00.orientation/src/00-remote",
-    "build:01": "yarn build -d contracts/01.using-single-calls/src/01-local && yarn build -d contracts/01.using-single-calls/src/01-remote && yarn build -d contracts/01.using-single-calls/src/01-loopback",
     "build:02": "yarn build -d contracts/02.using-multiple-calls/src/02",
     "build:03": "yarn build -d contracts/03.using-callbacks/src/03",
     "build:10": "yarn build -d contracts/10.linkdrop/src/10",

@@ -7,7 +7,6 @@
 [workspace]
 members = [
   "contracts/00.orientation/simulation",
-  "contracts/01.using-single-calls/simulation",
   "contracts/10.linkdrop/simulation",
   "contracts/20.nearly-neighbors/simulation"
 ]
