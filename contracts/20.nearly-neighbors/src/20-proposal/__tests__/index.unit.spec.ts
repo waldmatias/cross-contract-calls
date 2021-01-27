@@ -169,25 +169,46 @@ describe("20.nearly-neighbors.proposal", () => {
 
         expect(contract.list_supporters().length).toBe(1);
         // expect(contract.get_funding_total()).toBe(min_deposit)
-      })
+      });
     });
   });
 
-  // describe("when not initialized", () => {
-  //   beforeEach(attachMinDeposit)
+  describe("when not initialized", () => {
+    beforeEach(attachMinDeposit)
 
-  //   test("initialize() is idempotent; will throw if already initialized", () => {
-  //     doInitialize();
+    it("initialize() is idempotent; will throw if already initialized", () => {
+      doInitialize();
 
-  //     expect(doInitialize).toThrow();
-  //   });
+      expect(doInitialize).toThrow();
+    });
 
-  //   test("configure() throws", () => {
-  //     expect(doConfigure).toThrow();
-  //   });
-  // });
+    it("configure() throws", () => {
+      expect(doConfigure).toThrow();
+    });
+  });
 
-  // describe("when not configured", () => {
-  //   beforeAll(doInitialize);
-  // });
+  describe("when not configured", () => {
+    beforeEach(attachMinDeposit)
+    beforeEach(doInitialize);
+
+    it('get_funding_total() throws', () => {
+      expect(() => { contract.get_funding_total() }).toThrow()
+    })
+
+    it('is_fully_funded() throws', () => {
+      expect(() => { contract.is_fully_funded() }).toThrow()
+    })
+
+    it('toString() throws', () => {
+      expect(() => { contract.toString() }).toThrow()
+    })
+
+    it('add_supporter() throws', () => {
+      expect(() => { contract.add_supporter() }).toThrow()
+    })
+
+    it('list_supporters() throws', () => {
+      expect(() => { contract.list_supporters() }).toThrow()
+    })
+  });
 });
