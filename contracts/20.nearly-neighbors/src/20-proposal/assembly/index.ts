@@ -4,17 +4,59 @@ import {
   context,
   storage,
   PersistentVector,
-  PersistentSet,
   ContractPromise,
   logging,
 } from 'near-sdk-as';
 
+/**
+ * >>>>> Proposal Contract <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+ *
+ * The proposal contract represents a user's proposed idea for a development project.
+ *
+ * Proposals have details and funding data (goal, current total, minimum deposit), and they accept
+ * funding from supporters.
+ *
+ * If proposals are fully funded by their due date, then they are closed and converted to a
+ * project contract (with all funds transferred to the new project's account).
+ *
+ * Otherwise, then they are closed and all funds are returned to the supporters.
+ *
+ * TODO:
+ * - [ ] implement cancelProposal() - if not funded by due date, then abort
+ * - [ ] implement reimburseFunds() - return funds to supporters
+ * - [ ] implement transferFunds() - move all funding to created project
+ * - [ ] update create_project() to call transfer_funds()
+ */
+
+/**
+ * == CONSTANTS ================================================================
+ *
+ * ONE_NEAR = unit of NEAR token in yocto NEAR (1e24)
+ * XCC_GAS = gas for cross contract calls, ~5 Tgas (teragas = 1e12) per "hop"
+ * MIN_ACCOUNT_BALANCE = 3 NEAR min to keep account alive via storage staking
+ * PROPOSAL_KEY = key used to identify proposal object in storage
+ */
+const ONE_NEAR = u128.from('1000000000000000000000000');
+const XCC_GAS = 5000000000000;
+const MIN_ACCOUNT_BALANCE = u128.mul(ONE_NEAR, u128.from(3));
+const PROPOSAL_KEY = 'nn';
+
+/**
+ * == TYPES & STRUCTS ==========================================================
+ *
+ * Types & data models used by the contract.
+ */
+
 type AccountId = string;
 
-const ONE_NEAR = u128.from('1000000000000000000000000');
-const XCC_GAS = 5000000000000; // 5 teragas
-const MIN_ACCOUNT_BALANCE = u128.mul(ONE_NEAR, u128.from(3)); // 3 NEAR min to keep account alive via storage staking
-
+/**
+ * @class Proposal
+ * @property factory  - account ID of factory contract
+ * @property funding  - funding configuration & state
+ * @property details  - general info about the proposal
+ *
+ * Top-level object for storing proposal information. Stored on-chain with `storage`.
+ */
 @nearBindgen
 class Proposal {
   constructor(
@@ -24,6 +66,13 @@ class Proposal {
   ) {}
 }
 
+/**
+ * @class ProposalFunding
+ * @property goal         - target funding amount
+ * @property min_deposit  - minimum required deposit for supporters to pledge
+ * @property total        - current total funding accumulated
+ * @property funded       - whether or not total is at or above the goal
+ */
 @nearBindgen
 class ProposalFunding {
   constructor(
@@ -34,6 +83,13 @@ class ProposalFunding {
   ) {}
 }
 
+
+/**
+ * @class ProposalDetails
+ * @property title        - proposal name
+ * @property description  - more detailed explanation of the proposal
+ * @property author       - account ID of proposal creator
+ */
 @nearBindgen
 class ProposalDetails {
   constructor(
@@ -43,26 +99,32 @@ class ProposalDetails {
   ) {}
 }
 
+/**
+ * @class Supporter
+ * @property account - supporter's account ID
+ * @property amount  - amount pledged to proposal by supporter
+ *
+ * Represents a single proposal supporter, along with the amount they've pledged.
+ */
 @nearBindgen
 class Supporter {
   constructor(
     public account: AccountId,
     public amount: u128
-  ) // public coordinates: GeoCoords
-  {}
+  ) {}
 }
 
-@nearBindgen
-class GeoCoords {
-  constructor(public latitude: string, public longitude: string) {}
-}
+/**
+ * == PUBLIC METHODS ===========================================================
+ *
+ * The contract's public API.
+ */
 
-const PROPOSAL_KEY = 'state';
-
-// ----------------------------------------------------------------------------
-// CONTRACT methods
-// ----------------------------------------------------------------------------
-
+/**
+ * @function initialize
+ *
+ * Sets up and stores new Proposal.
+ */
 export function initialize(): void {
   logging.log(context.attachedDeposit);
   logging.log(MIN_ACCOUNT_BALANCE);
@@ -78,6 +140,15 @@ export function initialize(): void {
   resave_proposal(proposal);
 }
 
+/**
+ * @function configure
+ * @param title        - proposal name
+ * @param description  - more detailed explanation of the proposal
+ * @param goal         - target funding amount
+ * @param min_deposit  - minimum required deposit for supporters to pledge
+ *
+ * Configures basic data for ProposalDetails and ProposalFunding.
+ */
 export function configure(
   title: string,
   description: string,
@@ -92,25 +163,47 @@ export function configure(
   resave_proposal(proposal);
 }
 
+/**
+ * @function get_proposal
+ * @returns {Proposal}
+ *
+ * Gets the proposal from storage.
+ */
 export function get_proposal(): Proposal {
   assert(is_initialized(), 'Contract must be initialized first.');
   return storage.getSome<Proposal>(PROPOSAL_KEY);
 }
 
 /**
- * Block UX from proposal details page until fully configured
+ * @function is_configured
+ * @returns {bool}
+ *
+ * True if configure() has already been successfully called, otherwise false.
+ * Allows UX to block proposal details page until fully configured.
  */
 export function is_configured(): bool {
   assert(is_initialized(), 'Contract must be initialized first.');
   return !!get_proposal().details;
 }
 
+/**
+ * @function get_factory
+ * @returns {AccountId}
+ *
+ * The account ID of the factory that created this proposal.
+ */
 export function get_factory(): AccountId {
   assert(is_initialized(), 'Contract must be initialized first.');
 
   return get_proposal().factory;
 }
 
+/**
+ * @function get_funding_total
+ * @returns {u128}
+ *
+ * The current total funding accumulated.
+ */
 export function get_funding_total(): u128 {
   assert(is_configured(), 'Contract must be configured first.');
 
@@ -118,6 +211,12 @@ export function get_funding_total(): u128 {
   return proposal.funding!.total;
 }
 
+/**
+ * @function is_fully_funded
+ * @returns {bool}
+ *
+ * Whether or not total is at or above the goal.
+ */
 export function is_fully_funded(): bool {
   assert(is_configured(), 'Contract must be configured first.');
   const funding = get_funding_total()
@@ -125,10 +224,19 @@ export function is_fully_funded(): bool {
   return u128.ge(funding, goal);
 }
 
-// '<project title>.<proposal type>.neighborly.testnet'
-// my-cafe.business.neighborly.testnet
-//   my-cafe.business.proposal.neighborly.testnet
-//   my-cafe.business.project.neighborly.testnet << created once funding has been met
+/**
+ * @function to_string
+ * @returns {string}
+ *
+ * A friendly URI-like string identifying the proposal. Eventually this may look like:
+ *
+ *   '<project title>.<proposal|project>.neighborly.<testnet|mainnet>'
+ *
+ * Examples:
+ *
+ *   'lulus-cafe.proposal.neighborly.testnet'
+ *   'common-grounds.project.neighborly.testnet'
+ */
 export function toString(): string {
   assert(is_configured(), 'Contract must be configured first.');
 
@@ -137,6 +245,13 @@ export function toString(): string {
   return 'title: [' + proposal.details!.title + ']';
 }
 
+/**
+ * @function add_supporter
+ *
+ * Makes the sender a supporter of the proposal, using the attached NEAR as their pledge.
+ * Will fail unless the attached deposit for the transaction is more than the configured
+ * minimum deposit.
+ */
 export function add_supporter(): void {
   assert(is_configured(), 'Contract must be configured first.');
   assert(!is_fully_funded(), 'Proposal is already fully funded.');
@@ -160,6 +275,12 @@ export function add_supporter(): void {
   add_funding(amount);
 }
 
+/**
+ * @function list_supporters
+ * @returns {[Supporter]}
+ *
+ * All current supporters of the proposal.
+ */
 export function list_supporters(): PersistentVector<Supporter> {
   assert(is_configured(), 'Contract must be configured first.');
 
@@ -167,14 +288,24 @@ export function list_supporters(): PersistentVector<Supporter> {
   return supporters;
 }
 
-// ----------------------------------------------------------------------------
-// INTERNAL functions
-// ----------------------------------------------------------------------------
+/**
+ * == PRIVATE FUNCTIONS ========================================================
+ *
+ * Not to be called outside of this proposal.
+ */
 
+/**
+ * Whether or not the project has been initialized.
+ */
 function is_initialized(): bool {
   return storage.hasKey(PROPOSAL_KEY);
 }
 
+/**
+ * Updates the funding total by amount given.
+ *
+ * If this puts the total over goal, then this will call out to create_project().
+ */
 function add_funding(amount: u128): void {
   const current_total = get_funding_total();
   const new_amount = u128.add(amount, current_total);
@@ -192,12 +323,18 @@ function add_funding(amount: u128): void {
   }
 }
 
+/**
+ * Helper for converting an amount into yoctoNEAR notation (e.g. 50e24 becomes 50).
+ */
 function toNEAR(amount: u128): string {
   return u128.div(amount, ONE_NEAR).toString();
 }
 
-// once funded, create a project
-// if this is done by the factory, then easier to version
+/**
+ * Calls out to the factory contract to create a project from this proposal.
+ *
+ * Having the factory handle this work makes it easier to version.
+ */
 function create_project(): void {
   const proposal = get_proposal();
   const projectBudget = u128.sub(context.accountBalance, MIN_ACCOUNT_BALANCE);
@@ -209,16 +346,14 @@ function create_project(): void {
     proposal.factory, // target contract account name
     'create_project', // target method name
     proposal.details, // target method arguments
-    XCC_GAS // gas attached to the call (~5 Tgas (5e12) per "hop")
+    XCC_GAS // gas attached to the call
     // projectBudget             // deposit attached to the call
   );
 }
 
+/**
+ * Updates the proposal data in storage.
+ */
 export function resave_proposal(proposal: Proposal): void {
   storage.set(PROPOSAL_KEY, proposal);
 }
-
-// other functions:
-//  cancelProposal = if not funded by due date, then abort
-//    reimburseFunds = return funds to supporters
-//  transferFunds = move funding to project, assign to
