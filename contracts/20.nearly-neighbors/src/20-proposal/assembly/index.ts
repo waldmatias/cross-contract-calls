@@ -120,8 +120,7 @@ export function get_funding_total(): u128 {
 
 export function is_fully_funded(): bool {
   assert(is_configured(), 'Contract must be configured first.');
-  // const funding = get_funding_total()
-  const funding = u128.Zero;
+  const funding = get_funding_total()
   const goal = get_proposal().funding!.goal;
   return u128.ge(funding, goal);
 }
