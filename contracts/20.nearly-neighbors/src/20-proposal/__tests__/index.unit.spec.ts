@@ -9,7 +9,7 @@ const FACTORY_ACCOUNT_ID = "neighbors.factory";
 const title = "my contract";
 const description = "a test contract";
 const goal = u128.mul(ONE_NEAR, u128.from(50));
-const min_deposit = ONE_NEAR;
+const min_deposit = u128.mul(ONE_NEAR, u128.from(3));
 
 const useFactoryAsPredecessor = (): void => {
   VMContext.setPredecessor_account_id(FACTORY_ACCOUNT_ID);
@@ -24,7 +24,7 @@ const attachDeposit = (deposit: number): void => {
 };
 
 const attachMinDeposit = (): void => {
-  VMContext.setAttached_deposit(u128.mul(ONE_NEAR, min_deposit));
+  VMContext.setAttached_deposit(min_deposit);
 };
 
 const doInitialize = (): void => {
