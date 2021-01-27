@@ -161,12 +161,14 @@ describe('20.nearly-neighbors.proposal', () => {
         expect(contract.list_supporters().length).toBe(0);
         expect(contract.get_funding_total()).toBe(u128.from(0));
 
-        attachMinDeposit();
+        attachDeposit(5);
         VMContext.setSigner_account_id('carol');
         contract.add_supporter();
 
         expect(contract.list_supporters().length).toBe(1);
-        // expect(contract.get_funding_total()).toBe(min_deposit)
+        expect(contract.get_funding_total()).toBe(
+          u128.mul(ONE_NEAR, u128.from(5))
+        );
       });
     });
   });
