@@ -2,15 +2,14 @@ import { VMContext, u128 } from 'near-sdk-as';
 import * as contract from '../assembly';
 import { ONE_NEAR } from '../../utils';
 
-const FACTORY_ACCOUNT_ID = 'neighbors.factory';
-
 /**
  * == CONFIG VALUES ============================================================
  */
-const title = 'my contract';
-const description = 'a test contract';
-const goal = u128.mul(ONE_NEAR, u128.from(50));
-const min_deposit = u128.mul(ONE_NEAR, u128.from(3));
+const TITLE = 'common grounds';
+const DESCRIPTION = 'your neighborhood coffee spot';
+const GOAL = u128.mul(ONE_NEAR, u128.from(50));
+const MIN_DEPOSIT = u128.mul(ONE_NEAR, u128.from(3));
+const FACTORY_ACCOUNT_ID = 'neighbors.factory';
 
 /**
  * == HELPER FUNCTIONS =========================================================
@@ -28,7 +27,7 @@ const attachDeposit = (deposit: number): void => {
 };
 
 const attachMinDeposit = (): void => {
-  VMContext.setAttached_deposit(min_deposit);
+  VMContext.setAttached_deposit(MIN_DEPOSIT);
 };
 
 const doInitialize = (): void => {
@@ -36,7 +35,7 @@ const doInitialize = (): void => {
 };
 
 const doConfigure = (): void => {
-  contract.configure(title, description, goal, min_deposit);
+  contract.configure(TITLE, DESCRIPTION, GOAL, MIN_DEPOSIT);
 };
 
 const initAndConfig = (): void => {
@@ -77,12 +76,12 @@ describe('20.nearly-neighbors.proposal', () => {
 
       const proposal = contract.get_proposal();
       expect(proposal.details).not.toBeNull();
-      expect(proposal.details!.title).toBe(title);
-      expect(proposal.details!.description).toBe(description);
+      expect(proposal.details!.title).toBe(TITLE);
+      expect(proposal.details!.description).toBe(DESCRIPTION);
       expect(proposal.details!.author).toBe('bob');
 
-      expect(proposal.funding!.goal).toBe(goal);
-      expect(proposal.funding!.min_deposit).toBe(min_deposit);
+      expect(proposal.funding!.goal).toBe(GOAL);
+      expect(proposal.funding!.min_deposit).toBe(MIN_DEPOSIT);
     });
 
     it('switches is_configured() to true', () => {
@@ -191,7 +190,7 @@ describe('20.nearly-neighbors.proposal', () => {
     it('updates the stored proposal data', () => {
       const proposal = contract.get_proposal();
 
-      expect(proposal.details!.title).toBe(title);
+      expect(proposal.details!.title).toBe(TITLE);
       const newTotal = u128.mul(ONE_NEAR, u128.from(4));
       proposal.details!.title = 'new title';
       proposal.funding!.total = newTotal;
