@@ -5,8 +5,6 @@ import {
   storage,
   PersistentVector,
   PersistentMap,
-  ContractPromise,
-  logging,
 } from 'near-sdk-as';
 
 import { MIN_ACCOUNT_BALANCE, AccountId } from '../../utils';
@@ -151,6 +149,7 @@ export function initialize(proposal: string): void {
     u128.ge(context.attachedDeposit, MIN_ACCOUNT_BALANCE),
     'MIN_ACCOUNT_BALANCE must be attached to initialize (3 NEAR)'
   );
+
   const project = new Project(context.predecessor, proposal);
 
   resave_project(project);
@@ -164,7 +163,8 @@ export function initialize(proposal: string): void {
  * Configures basic data for ProjectDetails and ProjectFunding.
  */
 export function configure(title: string, description: string): void {
-  assert(is_initialized(), 'Contract must be initialized first.');
+  assert_initialized();
+
   const project = get_project();
   project.details = new ProjectDetails(title, description, context.sender);
   project.funding = new ProjectFunding(
@@ -185,9 +185,9 @@ export function add_contributor(
   account: AccountId,
   contribution: Contribution
 ): void {
-  assert(is_configured(), 'Contract must be configured first.');
-  const project = storage.get<Project>(PROJECT_KEY)!;
+  assert_configured();
 
+  const project = storage.get<Project>(PROJECT_KEY)!;
   const contributors = project.contributors;
   contributors.set(account, contribution);
   project.contributors = contributors;
@@ -212,9 +212,9 @@ export function add_expense(
   tags: string[],
   amount: u128 = u128.Zero
 ): void {
-  assert(is_configured(), 'Contract must be configured first.');
-  const project = storage.get<Project>(PROJECT_KEY)!;
+  assert_configured();
 
+  const project = storage.get<Project>(PROJECT_KEY)!;
   const expense = new Expense(label, tags, amount);
   project.funding!.expenses.push(expense);
 
@@ -228,7 +228,8 @@ export function add_expense(
  * Gets the project from storage.
  */
 export function get_project(): Project {
-  assert(is_initialized(), 'Contract must be initialized first.');
+  assert_initialized();
+
   return storage.getSome<Project>(PROJECT_KEY);
 }
 
@@ -236,7 +237,8 @@ export function get_project(): Project {
  * Block UX from project details page until fully configured
  */
 export function is_configured(): bool {
-  assert(is_initialized(), 'Contract must be initialized first.');
+  assert_initialized();
+
   return !!get_project().details;
 }
 
@@ -247,7 +249,8 @@ export function is_configured(): bool {
  * The account ID of the factory that created this project.
  */
 export function get_factory(): AccountId {
-  assert(is_initialized(), 'Contract must be initialized first.');
+  assert_initialized();
+
   return get_project().factory;
 }
 
@@ -258,7 +261,8 @@ export function get_factory(): AccountId {
  * The account ID of the proposal for this project.
  */
 export function get_proposal(): AccountId {
-  assert(is_initialized(), 'Contract must be initialized first.');
+  assert_initialized();
+
   return get_project().proposal;
 }
 
@@ -269,7 +273,8 @@ export function get_proposal(): AccountId {
  * The amount of funding still availale for the project (total - spent).
  */
 export function get_remaining_budget(): u128 {
-  assert(is_configured(), 'Contract must be configured first.');
+  assert_configured();
+
   const project = storage.get<Project>(PROJECT_KEY)!;
   return u128.sub(project.funding!.total, project.funding!.spent);
 }
@@ -281,7 +286,8 @@ export function get_remaining_budget(): u128 {
  * All expenses logged for this project.
  */
 export function get_expenses(): PersistentVector<Expense> {
-  assert(is_configured(), 'Contract must be configured first.');
+  assert_configured();
+
   const project = storage.get<Project>(PROJECT_KEY)!;
   return project.funding!.expenses;
 }
@@ -293,11 +299,11 @@ export function get_expenses(): PersistentVector<Expense> {
  * Map of all contributors's accounts to their contribution.
  */
 export function get_contributors(): PersistentMap<AccountId, Contribution> {
-  assert(is_configured(), 'Contract must be configured first.');
+  assert_configured();
+
   const project = storage.get<Project>(PROJECT_KEY)!;
   return project.contributors;
 }
-
 
 /**
  * == PRIVATE FUNCTIONS ========================================================
@@ -317,4 +323,18 @@ function is_initialized(): bool {
  */
 function resave_project(project: Project): void {
   storage.set(PROJECT_KEY, project);
+}
+
+/**
+ * Guard against contract not having been initialized.
+ */
+function assert_initialized(): void {
+  assert(is_initialized(), 'Contract must be initialized first.');
+}
+
+/**
+ * Guard against contract not having been configured.
+ */
+function assert_configured(): void {
+  assert(is_configured(), 'Contract must be configured first.');
 }
