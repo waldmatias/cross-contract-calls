@@ -124,12 +124,11 @@ class Contribution {
   ) {}
 }
 
-@nearBindgen
-class TaskStatus {
-  public BLOCKED: i8 = 0;
-  public ASSIGNED: i8 = 1;
-  public IN_PROGRESS: i8 = 2;
-  public COMPLETED: i8 = 4;
+enum TaskStatus {
+  BLOCKED = 0 as i8,
+  ASSIGNED = 1 as i8,
+  IN_PROGRESS = 2 as i8,
+  COMPLETED = 4 as i8,
 }
 
 /**
