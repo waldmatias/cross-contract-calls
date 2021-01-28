@@ -1,6 +1,6 @@
 import { VMContext, u128 } from 'near-sdk-as';
 import * as contract from '../assembly';
-import { ONE_NEAR, toYocto } from '../../utils';
+import { toYocto } from '../../utils';
 
 /**
  * == CONFIG VALUES ============================================================
