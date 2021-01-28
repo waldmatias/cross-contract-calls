@@ -113,7 +113,7 @@ class ProjectDetails {
  * @property status   - status of the contribution
  */
 @nearBindgen
-class Contribution {
+export class Contribution {
   constructor(
     public account: AccountId,
     public task: string,

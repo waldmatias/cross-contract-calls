@@ -1,161 +1,126 @@
-// import { VM, VMContext, u128, context, logging } from "near-sdk-as";
-// import * as contract from "../assembly";
+import { VMContext, u128 } from 'near-sdk-as';
+import * as contract from '../assembly';
+import { toYocto, MIN_ACCOUNT_BALANCE } from '../../utils';
 
-// const ONE_NEAR = u128.from("1000000000000000000000000");
+/**
+ * == CONFIG VALUES ============================================================
+ */
+const TITLE = 'common grounds';
+const DESCRIPTION = 'your neighborhood coffee spot';
+const PROPOSAL_ACCOUNT_ID = 'neighbors.proposal';
+const FACTORY_ACCOUNT_ID = 'neighbors.factory';
+const CONTRIBUTOR_ACCOUNT_ID = 'dawn';
 
-// const FACTORY_ACCOUNT_ID = "neighbors.factory";
+/**
+ * == HELPER FUNCTIONS =========================================================
+ */
+const useFactoryAsPredecessor = (): void => {
+  VMContext.setPredecessor_account_id(FACTORY_ACCOUNT_ID);
+};
 
-// // Configuration values
-// const title = "my contract";
-// const description = "a test contract";
-// const goal = u128.mul(ONE_NEAR, u128.from(50));
-// const min_deposit = ONE_NEAR;
+const setCurrentAccount = (): void => {
+  VMContext.setCurrent_account_id('alice');
+};
 
-// const useFactoryAsPredecessor = (): void => {
-//   VMContext.setPredecessor_account_id(FACTORY_ACCOUNT_ID);
-// };
+const attachMinBalance = (): void => {
+  VMContext.setAttached_deposit(MIN_ACCOUNT_BALANCE);
+};
 
-// const setCurrentAccount = (): void => {
-//   VMContext.setCurrent_account_id("alice");
-// };
+const doInitialize = (): void => {
+  contract.initialize(PROPOSAL_ACCOUNT_ID);
+};
 
-// const attachDeposit = (deposit: number): void => {
-//   VMContext.setAttached_deposit(u128.mul(ONE_NEAR, u128.from(deposit)));
-// };
+const doConfigure = (): void => {
+  contract.configure(TITLE, DESCRIPTION);
+};
 
-// const attachMinDeposit = (): void => {
-//   attachDeposit(3);
-// };
+const initAndConfig = (): void => {
+  attachMinBalance();
+  doInitialize();
+  doConfigure();
+};
 
-// const doInitialize = (): void => {
-//   contract.initialize();
-// };
+describe('20.nearly-neighbors.project', () => {
+  beforeEach(setCurrentAccount);
+  beforeEach(useFactoryAsPredecessor);
 
-// const doConfigure = (): void => {
-//   contract.configure(title, description, goal, min_deposit);
-// };
+  describe('initialize(proposal: AccountId): void', () => {
+    it('creates a new project, storing the factory and proposal IDs', () => {
+      attachMinBalance();
+      contract.initialize(PROPOSAL_ACCOUNT_ID);
 
-// const initAndConfig = (): void => {
-//   attachMinDeposit();
-//   doInitialize();
-//   doConfigure();
-// };
+      expect(contract.get_factory()).toBe(FACTORY_ACCOUNT_ID);
+      expect(contract.get_proposal()).toBe(PROPOSAL_ACCOUNT_ID);
+    });
+  });
 
-// describe("20.nearly-neighbors.proposal", () => {
-//   beforeEach(setCurrentAccount);
-//   beforeEach(useFactoryAsPredecessor);
+  describe('configure(title, description): void', () => {
+    beforeEach(attachMinBalance);
+    beforeEach(doInitialize);
 
-//   describe("initialize(): void", () => {
-//     it("creates a new proposal, storing the factory account ID (predecessor)", () => {
-//       attachMinDeposit();
-//       doInitialize();
-//       expect(contract.get_factory()).toBe(FACTORY_ACCOUNT_ID);
-//     });
+    it('adds details and funding data to project', () => {
+      doConfigure();
 
-//     it("requires a minimum deposit be attached", () => {
-//       expect(doInitialize).toThrow();
-//     });
-//   });
+      const project = contract.get_project();
+      expect(project.details).not.toBeNull();
+      expect(project.details!.title).toBe(TITLE);
+      expect(project.details!.description).toBe(DESCRIPTION);
 
-//   describe("configure(title, description, goal, min_deposit): void", () => {
-//     beforeEach(attachMinDeposit);
+      expect(project.funding).not.toBeNull();
+      expect(project.funding!.total).not.toBeNull();
+      expect(project.funding!.spent).not.toBeNull();
+    });
 
-//     it("adds details and funding data to proposal", () => {
-//       doInitialize();
+    it('switches is_configured() to true', () => {
+      expect(contract.is_configured()).toBe(false);
+      doConfigure();
+      expect(contract.is_configured()).toBe(true);
+    });
+  });
 
-//       expect(() => {
-//         contract.get_funding_total();
-//       }).toThrow();
+  describe('add_contributor(account: AccountId, contribution: Contribution): void', () => {
+    beforeEach(initAndConfig);
 
-//       doConfigure();
+    it('assigns an additional contributor to the contributors map', () => {
+      expect(
+        contract.get_contributors().get(CONTRIBUTOR_ACCOUNT_ID, null)
+      ).toBeNull();
 
-//       const proposal = contract.get_proposal();
-//       expect(proposal.details).not.toBeNull();
-//       expect(proposal.details!.title).toBe(title);
-//       expect(proposal.details!.description).toBe(description);
-//       // TODO: @amgando - why is this "bob" despite calling context.setCurrent_account_id??
-//       expect(proposal.details!.author).toBe("bob");
+      const contribution = new contract.Contribution(
+        CONTRIBUTOR_ACCOUNT_ID,
+        'Build out the counter',
+        toYocto(10)
+      );
 
-//       expect(proposal.funding!.goal).toBe(goal);
-//       expect(proposal.funding!.min_deposit).toBe(min_deposit);
-//     });
+      contract.add_contributor(CONTRIBUTOR_ACCOUNT_ID, contribution);
 
-//     it("switches is_configured() to true", () => {
-//       doInitialize();
+      const contributors = contract.get_contributors();
+      const contributor = contributors.get(CONTRIBUTOR_ACCOUNT_ID, null);
+      expect(contributor).not.toBeNull();
+      expect(contributor!.account).toBe(CONTRIBUTOR_ACCOUNT_ID);
+      expect(contributor!.task).toBe('Build out the counter');
+      expect(contributor!.amount).toBe(toYocto(10));
+      expect(contributor!.status).toBe(1 as i8);
+    });
+  });
 
-//       expect(contract.is_configured()).toBe(false);
-//       doConfigure();
-//       expect(contract.is_configured()).toBe(true);
-//     });
-//   });
+  describe('add_expense(label, tags, amount): void', () => {
+    beforeEach(initAndConfig);
 
-//   describe("when configured", () => {
-//     beforeEach(initAndConfig);
+    it('adds a new expense', () => {
+      expect(contract.get_expenses().length).toBe(0);
 
-//     describe("get_proposal(): Proposal", () => {
-//       it("returns the proposal object with factory, details, and funding", () => {
-//         const proposal = contract.get_proposal();
+      const label = 'roaster'
+      const amount = toYocto(4)
 
-//         expect(proposal.factory).not.toBeNull();
-//         expect(proposal.details).not.toBeNull();
-//         expect(proposal.funding).not.toBeNull();
-//       });
-//     });
+      contract.add_expense(label, amount)
 
-//     describe("get_funding_total(): u128", () => {
-//       it("returns the current funding amount (accounting for MIN_ACCOUNT_BALANCE)", () => {
-//         expect(contract.get_funding_total()).toBe(u128.from(0));
-//       });
-//     });
+      expect(contract.get_expenses().length).toBe(1);
 
-//     describe("is_fully_funded(): bool", () => {
-//       xit("returns true when funding total is greater than or equal to the goal", () => {
-
-//       })
-//     })
-
-//     describe("add_supporter(): void", () => {
-//       it("adds the signer + deposit to the list of supporters", () => {
-//         expect(contract.list_supporters().length).toBe(0);
-
-//         attachDeposit(4)
-//         VMContext.setSigner_account_id("carol");
-//         contract.add_supporter();
-
-//         const supporters = contract.list_supporters();
-//         expect(supporters.length).toBe(1);
-//         expect(supporters[0].account).toBe("carol");
-//         expect(supporters[0].amount).toBe(u128.mul(ONE_NEAR, u128.from(4)));
-//       });
-
-//       // TODO: implement these tests
-//       xit("updates the funding total", () => {
-//         expect(contract.get_funding_total()).toBe(u128.from(0))
-
-//         attachDeposit(3)
-//         VMContext.setSigner_account_id('carol')
-//         contract.add_supporter()
-
-//         expect(contract.get_funding_total()).toBe(min_deposit)
-//       })
-//     });
-//   });
-
-//   describe("when not initialized", () => {
-//     beforeEach(attachMinDeposit)
-
-//     test("initialize() is idempotent; will throw if already initialized", () => {
-//       doInitialize();
-
-//       expect(doInitialize).toThrow();
-//     });
-
-//     test("configure() throws", () => {
-//       expect(doConfigure).toThrow();
-//     });
-//   });
-
-//   // describe("when not configured", () => {
-//   //   beforeAll(doInitialize);
-//   // });
-// });
+      const expense = contract.get_expenses()[0];
+      expect(expense).not.toBeNull();
+      expect(expense!.label).toBe(label);
+      expect(expense!.amount).toBe(amount);
+    });
+  });
+});
