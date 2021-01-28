@@ -1,16 +1,20 @@
-import { VM, VMContext, u128, context, logging } from 'near-sdk-as';
+import { VMContext, u128 } from 'near-sdk-as';
 import * as contract from '../assembly';
-
-const ONE_NEAR = u128.from('1000000000000000000000000');
+import { ONE_NEAR } from '../../utils';
 
 const FACTORY_ACCOUNT_ID = 'neighbors.factory';
 
-// Configuration values
+/**
+ * == CONFIG VALUES ============================================================
+ */
 const title = 'my contract';
 const description = 'a test contract';
 const goal = u128.mul(ONE_NEAR, u128.from(50));
 const min_deposit = u128.mul(ONE_NEAR, u128.from(3));
 
+/**
+ * == HELPER FUNCTIONS =========================================================
+ */
 const useFactoryAsPredecessor = (): void => {
   VMContext.setPredecessor_account_id(FACTORY_ACCOUNT_ID);
 };
@@ -90,86 +94,114 @@ describe('20.nearly-neighbors.proposal', () => {
     });
   });
 
-  describe('when configured', () => {
-    describe('get_proposal(): Proposal', () => {
-      beforeEach(initAndConfig);
+  describe('add_supporter(): void', () => {
+    beforeEach(initAndConfig);
 
-      it('returns the proposal object with factory, details, and funding', () => {
-        const proposal = contract.get_proposal();
+    it('adds the signer + deposit to the list of supporters', () => {
+      expect(contract.list_supporters().length).toBe(0);
 
-        expect(proposal.factory).not.toBeNull();
-        expect(proposal.details).not.toBeNull();
-        expect(proposal.funding).not.toBeNull();
-      });
+      attachDeposit(4);
+      VMContext.setSigner_account_id('cc');
+      contract.add_supporter();
+
+      const supporters = contract.list_supporters();
+      expect(supporters.length).toBe(1);
+      expect(supporters[0].account).toBe('cc');
+      expect(supporters[0].amount).toBe(u128.mul(ONE_NEAR, u128.from(4)));
     });
 
-    describe('resave_proposal(Proposal): void', () => {
-      beforeEach(initAndConfig);
+    it('updates the funding total', () => {
+      expect(contract.list_supporters().length).toBe(0);
+      expect(contract.get_funding_total()).toBe(u128.from(0));
 
-      it('updates the stored proposal data', () => {
-        const proposal = contract.get_proposal();
+      attachDeposit(5);
+      VMContext.setSigner_account_id('carol');
+      contract.add_supporter();
 
-        expect(proposal.details!.title).toBe(title);
-        const newTotal = u128.mul(ONE_NEAR, u128.from(4));
-        proposal.details!.title = 'new title';
-        proposal.funding!.total = newTotal;
-
-        expect(contract.get_proposal().details!.title).not.toBe('new title');
-        expect(contract.get_proposal().funding!.total).not.toBe(newTotal);
-        contract.resave_proposal(proposal);
-        expect(contract.get_proposal().funding!.total).toBe(newTotal);
-        expect(contract.get_proposal().details!.title).toBe('new title');
-        expect(contract.get_funding_total()).toBe(newTotal);
-      });
+      expect(contract.list_supporters().length).toBe(1);
+      expect(contract.get_funding_total()).toBe(
+        u128.mul(ONE_NEAR, u128.from(5))
+      );
     });
+  });
 
-    describe('get_funding_total(): u128', () => {
-      beforeEach(initAndConfig);
+  describe('get_proposal(): Proposal', () => {
+    beforeEach(initAndConfig);
 
-      it('returns the current funding amount (accounting for MIN_ACCOUNT_BALANCE)', () => {
-        expect(contract.get_funding_total()).toBe(u128.from(0));
-      });
+    it('returns the proposal object with factory, details, and funding', () => {
+      const proposal = contract.get_proposal();
+
+      expect(proposal.factory).not.toBeNull();
+      expect(proposal.details).not.toBeNull();
+      expect(proposal.funding).not.toBeNull();
     });
+  });
 
-    describe('is_fully_funded(): bool', () => {
-      beforeEach(initAndConfig);
+  describe('get_factory(): Proposal', () => {
+    beforeEach(useFactoryAsPredecessor);
+    beforeEach(initAndConfig);
 
-      xit('returns true when funding total is greater than or equal to the goal', () => {});
+    it('returns factory account id', () => {
+      expect(contract.get_factory()).toBe(FACTORY_ACCOUNT_ID);
     });
+  });
 
-    describe('add_supporter(): void', () => {
-      beforeEach(initAndConfig);
+  describe('get_funding_total(): u128', () => {
+    beforeEach(initAndConfig);
 
-      it('adds the signer + deposit to the list of supporters', () => {
-        expect(contract.list_supporters().length).toBe(0);
+    it('returns the current funding amount (accounting for MIN_ACCOUNT_BALANCE)', () => {
+      expect(contract.get_funding_total()).toBe(u128.from(0));
+    });
+  });
 
-        attachDeposit(4);
-        VMContext.setSigner_account_id('cc');
-        contract.add_supporter();
+  describe('list_supporters(): [Supporter]', () => {
+    beforeEach(initAndConfig);
 
-        const supporters = contract.list_supporters();
-        expect(supporters.length).toBe(1);
-        expect(supporters[0].account).toBe('cc');
-        expect(supporters[0].amount).toBe(u128.mul(ONE_NEAR, u128.from(4)));
+    it('returns an array of supporters', () => {
+      expect(contract.list_supporters().length).toBe(0);
 
-        expect(contract.get_funding_total()).toBe(
-          u128.mul(ONE_NEAR, u128.from(4))
-        );
-      });
+      attachDeposit(4);
+      VMContext.setSigner_account_id('carol');
+      contract.add_supporter();
 
-      it('updates the funding total', () => {
-        expect(contract.list_supporters().length).toBe(0);
-        expect(contract.get_funding_total()).toBe(u128.from(0));
+      const supporters = contract.list_supporters();
+      expect(supporters.length).toBe(1);
+      expect(supporters[0].account).toBe('carol');
+      expect(supporters[0].amount).toBe(u128.mul(ONE_NEAR, u128.from(4)));
+    });
+  });
 
-        attachDeposit(5);
-        VMContext.setSigner_account_id('carol');
-        contract.add_supporter();
+  describe('is_fully_funded(): bool', () => {
+    beforeEach(initAndConfig);
 
-        expect(contract.list_supporters().length).toBe(1);
-        expect(contract.get_funding_total()).toBe(
-          u128.mul(ONE_NEAR, u128.from(5))
-        );
-      });
+    it('returns true when funding total is greater than or equal to the goal', () => {
+      expect(contract.is_fully_funded()).toBe(false);
+
+      attachDeposit(50);
+      VMContext.setSigner_account_id('carol');
+      contract.add_supporter();
+
+      expect(contract.is_fully_funded()).toBe(true);
+    });
+  });
+
+  describe('resave_proposal(Proposal): void', () => {
+    beforeEach(initAndConfig);
+
+    it('updates the stored proposal data', () => {
+      const proposal = contract.get_proposal();
+
+      expect(proposal.details!.title).toBe(title);
+      const newTotal = u128.mul(ONE_NEAR, u128.from(4));
+      proposal.details!.title = 'new title';
+      proposal.funding!.total = newTotal;
+
+      expect(contract.get_proposal().details!.title).not.toBe('new title');
+      expect(contract.get_proposal().funding!.total).not.toBe(newTotal);
+      contract.resave_proposal(proposal);
+      expect(contract.get_proposal().funding!.total).toBe(newTotal);
+      expect(contract.get_proposal().details!.title).toBe('new title');
+      expect(contract.get_funding_total()).toBe(newTotal);
     });
   });
 
@@ -177,9 +209,11 @@ describe('20.nearly-neighbors.proposal', () => {
     beforeEach(attachMinDeposit);
 
     it('initialize() is idempotent; will throw if already initialized', () => {
-      doInitialize();
+      contract.initialize();
 
-      expect(doInitialize).toThrow();
+      expect(() => {
+        contract.initialize();
+      }).toThrow();
     });
 
     it('configure() throws', () => {
