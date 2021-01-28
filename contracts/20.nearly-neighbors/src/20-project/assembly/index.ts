@@ -1,15 +1,4 @@
 // @nearfile out
-/**
- * The intent of a project is to realize a proposal.
- *
- * Once a proposal is fully funded, it is automatically converted to a project
- * and all funds transfered (except min storage staking for proposal contract
- * persistence)
- *
- * Actually tracking project progress is outside the scope of this work and
- * would fall to an oracle or DAO
- */
-
 import {
   u128,
   context,
@@ -20,47 +9,97 @@ import {
   logging,
 } from 'near-sdk-as';
 
-type AccountId = string;
+import { MIN_ACCOUNT_BALANCE, AccountId } from '../../utils';
 
-const ONE_NEAR = u128.from('1000000000000000000000000');
-const XCC_GAS = 5000000000000; // 5 teragas
-const MIN_ACCOUNT_BALANCE = u128.mul(ONE_NEAR, u128.from(3)); // 3 NEAR min to keep account alive via storage staking
-// TODO: this min account balance should be revisted after some real data is included bc this could end up being much higher
+/**
+ * >>>>> Project Contract <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+ *
+ * The intent of a project is to realize a proposal.
+ *
+ * Once a proposal is fully funded, it is automatically converted to a project and all funds
+ * transferred (except minimum storage staking for proposal contract persistence).
+ *
+ * Actually tracking project progress is outside the scope of this work and would fall to
+ * an oracle or DAO.
+ */
 
-@nearBindgen
+/**
+ * == CONSTANTS ================================================================
+ *
+ * PROJECT_KEY = key used to identify project object in storage
+ */
+const PROJECT_KEY = 'state';
+
+/**
+ * == TYPES & STRUCTS ==========================================================
+ *
+ * Types & data models used by the contract.
+ */
+
+ /**
+ * @class Project
+ * @property factory      - account ID of factory contract
+ * @property proposal     - account ID of proposal that lead to funding this project
+ * @property details      - general info about the project
+ * @property funding      - funds and expense tracking
+ * @property contributors - list of contributors to the project
+ *
+ * Top-level object for storing project data. Stored on-chain with `storage`.
+ */
+ @nearBindgen
 class Project {
   constructor(
-    public factory: AccountId, // the factory contract that created the project
-    public proposal: AccountId, // the proposal that lead to funding this project
-    public details: ProjectDetails | null = null, // project metadata
-    public funding: ProjectFunding | null = null, // project funding details
+    public factory: AccountId,
+    public proposal: AccountId,
+    public details: ProjectDetails | null = null,
+    public funding: ProjectFunding | null = null,
     public contributors: PersistentMap<
       AccountId,
       Contribution
-    > = new PersistentMap<AccountId, Contribution>('c') // list of contributors to the project
+    > = new PersistentMap<AccountId, Contribution>('c')
   ) {}
 }
 
+/**
+ * @class ProjectFunding
+ * @property total     - total funding available to realize this project
+ * @property spent     - total spent to date
+ * @property expenses  - list of expenses
+ *
+ * Funds and expense tracking for a project.
+ */
 @nearBindgen
 class ProjectFunding {
   constructor(
-    public total: u128 = u128.Zero, // total funding available to realize this project
-    public spent: u128 = u128.Zero, // total spent to date
+    public total: u128 = u128.Zero,
+    public spent: u128 = u128.Zero,
     public expenses: PersistentVector<Expense> = new PersistentVector<Expense>(
       'e'
-    ) // list of expenses
+    )
   ) {}
 }
 
+/**
+ * @class Expense
+ * @property label  - descriptive tag for expense
+ * @property tags   - collection of tags used to organize expenses
+ * @property amount - default to zero for expense notes
+ */
 @nearBindgen
 class Expense {
   constructor(
     public label: string,
-    public tags: string[], // collection of tags used to organize expenses
-    public amount: u128 = u128.Zero // default to zero for expense notes
+    public tags: string[],
+    public amount: u128 = u128.Zero
   ) {}
 }
 
+/**
+ * @class ProjectDetails
+ * @property title        - project name
+ * @property description  - more detailed explanation of the project
+ * @property owner        - account ID of project owner
+ */
 @nearBindgen
 class ProjectDetails {
   constructor(
@@ -70,13 +109,20 @@ class ProjectDetails {
   ) {}
 }
 
+/**
+ * @class Contribution
+ * @property account  - account ID of contributor
+ * @property task     - task description and details assigned to this contributor
+ * @property amount   - budget for this contribution
+ * @property status   - status of the contribution
+ */
 @nearBindgen
 class Contribution {
   constructor(
-    public account: AccountId, // the contributor's account
-    public task: string, // the task description and details assigned to this contributor
-    public amount: u128 = u128.Zero, // the budget for this contribution
-    public status: TaskStatus = TaskStatus.ASSIGNED // the status of the contribution
+    public account: AccountId,
+    public task: string,
+    public amount: u128 = u128.Zero,
+    public status: TaskStatus = TaskStatus.ASSIGNED
   ) {}
 }
 
@@ -88,24 +134,35 @@ class TaskStatus {
   public COMPLETED: i8 = 4;
 }
 
-const PROJECT_KEY = 'state';
+/**
+ * == PUBLIC METHODS ===========================================================
+ *
+ * The contract's public API.
+ */
 
-// ----------------------------------------------------------------------------
-// CONTRACT methods
-// ----------------------------------------------------------------------------
-
+/**
+ * @function initialize
+ *
+ * Sets up and stores new Project.
+ */
 export function initialize(proposal: string): void {
   assert(!is_initialized(), 'Contract is already initialized.');
   assert(
     u128.ge(context.attachedDeposit, MIN_ACCOUNT_BALANCE),
     'MIN_ACCOUNT_BALANCE must be attached to initialize (3 NEAR)'
   );
-  // setup basic proposal structure
   const project = new Project(context.predecessor, proposal);
 
   resave_project(project);
 }
 
+/**
+ * @function configure
+ * @param title        - project name
+ * @param description  - more detailed explanation of the project
+ *
+ * Configures basic data for ProjectDetails and ProjectFunding.
+ */
 export function configure(title: string, description: string): void {
   assert(is_initialized(), 'Contract must be initialized first.');
   const project = get_project();
@@ -117,6 +174,12 @@ export function configure(title: string, description: string): void {
   resave_project(project);
 }
 
+/**
+ * @function get_proposal
+ * @returns {Project}
+ *
+ * Gets the project from storage.
+ */
 export function get_project(): Project {
   assert(is_initialized(), 'Contract must be initialized first.');
   return storage.getSome<Project>(PROJECT_KEY);
@@ -130,29 +193,65 @@ export function is_configured(): bool {
   return !!get_project().details;
 }
 
+/**
+ * @function get_factory
+ * @returns {AccountId}
+ *
+ * The account ID of the factory that created this project.
+ */
 export function get_factory(): AccountId {
   assert(is_initialized(), 'Contract must be initialized first.');
   return get_project().factory;
 }
 
+/**
+ * @function get_proposal
+ * @returns {AccountId}
+ *
+ * The account ID of the proposal for this project.
+ */
 export function get_proposal(): AccountId {
   assert(is_initialized(), 'Contract must be initialized first.');
   return get_project().proposal;
 }
 
+/**
+ * @function get_remaining_budget
+ * @returns {u128}
+ *
+ * The amount of funding still availale for the project (total - spent).
+ */
 export function get_remaining_budget(): u128 {
   assert(is_configured(), 'Contract must be configured first.');
   const project = storage.get<Project>(PROJECT_KEY)!;
   return u128.sub(project.funding!.total, project.funding!.spent);
 }
 
+/**
+ * @function get_expenses
+ * @returns {[Expense]}
+ *
+ * All expenses logged for this project.
+ */
 export function get_expenses(): PersistentVector<Expense> {
   assert(is_configured(), 'Contract must be configured first.');
   const project = storage.get<Project>(PROJECT_KEY)!;
   return project.funding!.expenses;
 }
 
-// ASK 1.1: is it better to decompose types into the contract interface like this to save on serde costs ...
+
+/**
+ * @function add_expense
+ * @param label   - expense label
+ * @param tags    - expense tags
+ * @param amount  - expense amount
+ *
+ * Track an expense.
+ *
+ * TODO: find out if it is better to decompose types into the contract interface like this
+ *  to save on serde costs... or better to keep the custom types exposed like in add_contributor()
+ *  for better readability?
+ */
 export function add_expense(
   label: string,
   tags: string[],
@@ -167,13 +266,25 @@ export function add_expense(
   resave_project(project);
 }
 
+/**
+ * @function get_contributors
+ * @returns {{[AccountId]: Contribution}}
+ *
+ * Map of all contributors's accounts to their contribution.
+ */
 export function get_contributors(): PersistentMap<AccountId, Contribution> {
   assert(is_configured(), 'Contract must be configured first.');
   const project = storage.get<Project>(PROJECT_KEY)!;
   return project.contributors;
 }
 
-// ASK 1.2: ... or better to keep the custom types exposed like this for better readability?
+/**
+ * @function add_contributor
+ * @param account {AccountId}         - contributor account
+ * @param contribution {Contribution} - contribution object
+ *
+ * Add a contributor to the project.
+ */
 export function add_contributor(
   account: AccountId,
   contribution: Contribution
@@ -188,23 +299,22 @@ export function add_contributor(
   resave_project(project);
 }
 
-// // ----------------------------------------------------------------------------
-// // INTERNAL functions
-// // ----------------------------------------------------------------------------
+/**
+ * == PRIVATE FUNCTIONS ========================================================
+ *
+ * Not to be called outside of this proposal.
+ */
 
+/**
+ * Whether or not the project has been initialized.
+ */
 function is_initialized(): bool {
   return !!storage.hasKey(PROJECT_KEY);
 }
 
-function toNEAR(amount: u128): string {
-  return u128.div(amount, ONE_NEAR).toString();
-}
-
+/**
+ * Updates the proposal data in storage.
+ */
 function resave_project(project: Project): void {
   storage.set(PROJECT_KEY, project);
 }
-
-// // other functions:
-// //  cancelProposal = if not funded by due date, then abort
-// //    reimburseFunds = return funds to supporters
-// //  transferFunds = move funding to project, assign to
