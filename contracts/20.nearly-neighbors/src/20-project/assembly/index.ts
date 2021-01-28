@@ -36,7 +36,7 @@ const PROJECT_KEY = 'state';
  * Types & data models used by the contract.
  */
 
- /**
+/**
  * @class Project
  * @property factory      - account ID of factory contract
  * @property proposal     - account ID of proposal that lead to funding this project
@@ -46,7 +46,7 @@ const PROJECT_KEY = 'state';
  *
  * Top-level object for storing project data. Stored on-chain with `storage`.
  */
- @nearBindgen
+@nearBindgen
 class Project {
   constructor(
     public factory: AccountId,
@@ -175,7 +175,54 @@ export function configure(title: string, description: string): void {
 }
 
 /**
- * @function get_proposal
+ * @function add_contributor
+ * @param account {AccountId}         - contributor account
+ * @param contribution {Contribution} - contribution object
+ *
+ * Add a contributor to the project.
+ */
+export function add_contributor(
+  account: AccountId,
+  contribution: Contribution
+): void {
+  assert(is_configured(), 'Contract must be configured first.');
+  const project = storage.get<Project>(PROJECT_KEY)!;
+
+  const contributors = project.contributors;
+  contributors.set(account, contribution);
+  project.contributors = contributors;
+
+  resave_project(project);
+}
+
+/**
+ * @function add_expense
+ * @param label   - expense label
+ * @param tags    - expense tags
+ * @param amount  - expense amount
+ *
+ * Track an expense.
+ *
+ * TODO: find out if it is better to decompose types into the contract interface like this
+ *  to save on serde costs... or better to keep the custom types exposed like in add_contributor()
+ *  for better readability?
+ */
+export function add_expense(
+  label: string,
+  tags: string[],
+  amount: u128 = u128.Zero
+): void {
+  assert(is_configured(), 'Contract must be configured first.');
+  const project = storage.get<Project>(PROJECT_KEY)!;
+
+  const expense = new Expense(label, tags, amount);
+  project.funding!.expenses.push(expense);
+
+  resave_project(project);
+}
+
+/**
+ * @function get_project
  * @returns {Project}
  *
  * Gets the project from storage.
@@ -239,33 +286,6 @@ export function get_expenses(): PersistentVector<Expense> {
   return project.funding!.expenses;
 }
 
-
-/**
- * @function add_expense
- * @param label   - expense label
- * @param tags    - expense tags
- * @param amount  - expense amount
- *
- * Track an expense.
- *
- * TODO: find out if it is better to decompose types into the contract interface like this
- *  to save on serde costs... or better to keep the custom types exposed like in add_contributor()
- *  for better readability?
- */
-export function add_expense(
-  label: string,
-  tags: string[],
-  amount: u128 = u128.Zero
-): void {
-  assert(is_configured(), 'Contract must be configured first.');
-  const project = storage.get<Project>(PROJECT_KEY)!;
-
-  const expense = new Expense(label, tags, amount);
-  project.funding!.expenses.push(expense);
-
-  resave_project(project);
-}
-
 /**
  * @function get_contributors
  * @returns {{[AccountId]: Contribution}}
@@ -278,26 +298,6 @@ export function get_contributors(): PersistentMap<AccountId, Contribution> {
   return project.contributors;
 }
 
-/**
- * @function add_contributor
- * @param account {AccountId}         - contributor account
- * @param contribution {Contribution} - contribution object
- *
- * Add a contributor to the project.
- */
-export function add_contributor(
-  account: AccountId,
-  contribution: Contribution
-): void {
-  assert(is_configured(), 'Contract must be configured first.');
-  const project = storage.get<Project>(PROJECT_KEY)!;
-
-  const contributors = project.contributors;
-  contributors.set(account, contribution);
-  project.contributors = contributors;
-
-  resave_project(project);
-}
 
 /**
  * == PRIVATE FUNCTIONS ========================================================
