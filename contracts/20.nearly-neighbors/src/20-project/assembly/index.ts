@@ -179,6 +179,9 @@ export function configure(title: string, description: string): void {
  * @param contribution {Contribution} - contribution object
  *
  * Add a contributor to the project.
+ *
+ * TODO: why do we need to include the account param here, if it is already embedded within
+ *  the contribution object?
  */
 export function add_contributor(
   account: AccountId,
