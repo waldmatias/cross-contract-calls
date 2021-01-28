@@ -22,7 +22,7 @@ import { XCC_GAS, MIN_ACCOUNT_BALANCE, AccountId, asNEAR } from '../../utils';
  *
  * Otherwise, then they are closed and all funds are returned to the supporters.
  *
- * TODO:
+ * TODO: implement & update remaining methods
  * - [ ] implement cancelProposal() - if not funded by due date, then abort
  * - [ ] implement reimburseFunds() - return funds to supporters
  * - [ ] implement transferFunds() - move all funding to created project
@@ -151,6 +151,34 @@ export function configure(
 }
 
 /**
+ * @function add_supporter
+ *
+ * Makes the sender a supporter of the proposal, using the attached NEAR as their pledge.
+ * Will fail unless the attached deposit for the transaction is more than the configured
+ * minimum deposit.
+ */
+export function add_supporter(): void {
+  assert_configured();
+  assert(!is_fully_funded(), 'Proposal is already fully funded.');
+
+  const amount = context.attachedDeposit;
+  const account = context.sender;
+
+  const proposal = get_proposal();
+  assert(
+    u128.ge(context.attachedDeposit, proposal.funding!.min_deposit),
+    'Please attach minimum deposit of [' +
+      asNEAR(proposal.funding!.min_deposit) +
+      '] NEAR'
+  );
+
+  const supporters = new PersistentVector<Supporter>('s');
+  const supporter = new Supporter(account, amount);
+  supporters.push(supporter);
+  add_funding(amount);
+}
+
+/**
  * @function get_proposal
  * @returns {Proposal}
  *
@@ -185,6 +213,19 @@ export function get_funding_total(): u128 {
 
   const proposal = storage.get<Proposal>(PROPOSAL_KEY)!;
   return proposal.funding!.total;
+}
+
+/**
+ * @function list_supporters
+ * @returns {[Supporter]}
+ *
+ * All current supporters of the proposal.
+ */
+export function list_supporters(): PersistentVector<Supporter> {
+  assert_configured();
+
+  const supporters = new PersistentVector<Supporter>('s');
+  return supporters;
 }
 
 /**
@@ -232,47 +273,6 @@ export function toString(): string {
 
   const proposal = get_proposal();
   return 'title: [' + proposal.details!.title + ']';
-}
-
-/**
- * @function add_supporter
- *
- * Makes the sender a supporter of the proposal, using the attached NEAR as their pledge.
- * Will fail unless the attached deposit for the transaction is more than the configured
- * minimum deposit.
- */
-export function add_supporter(): void {
-  assert_configured();
-  assert(!is_fully_funded(), 'Proposal is already fully funded.');
-
-  const amount = context.attachedDeposit;
-  const account = context.sender;
-
-  const proposal = get_proposal();
-  assert(
-    u128.ge(context.attachedDeposit, proposal.funding!.min_deposit),
-    'Please attach minimum deposit of [' +
-      asNEAR(proposal.funding!.min_deposit) +
-      '] NEAR'
-  );
-
-  const supporters = new PersistentVector<Supporter>('s');
-  const supporter = new Supporter(account, amount);
-  supporters.push(supporter);
-  add_funding(amount);
-}
-
-/**
- * @function list_supporters
- * @returns {[Supporter]}
- *
- * All current supporters of the proposal.
- */
-export function list_supporters(): PersistentVector<Supporter> {
-  assert_configured();
-
-  const supporters = new PersistentVector<Supporter>('s');
-  return supporters;
 }
 
 /**
