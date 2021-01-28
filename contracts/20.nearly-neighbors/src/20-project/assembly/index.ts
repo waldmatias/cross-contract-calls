@@ -142,7 +142,7 @@ enum TaskStatus {
  *
  * Sets up and stores new Project.
  */
-export function initialize(proposal: string): void {
+export function initialize(proposal: AccountId): void {
   assert(!is_initialized(), 'Contract is already initialized.');
   assert(
     u128.ge(context.attachedDeposit, MIN_ACCOUNT_BALANCE),

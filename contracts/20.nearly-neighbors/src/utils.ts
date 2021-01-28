@@ -17,6 +17,10 @@ export const MIN_ACCOUNT_BALANCE = u128.mul(ONE_NEAR, u128.from(3));
 /**
  * == TYPES ====================================================================
  */
+
+/**
+ * Account IDs in NEAR are just strings.
+ */
 export type AccountId = string;
 
 /**
