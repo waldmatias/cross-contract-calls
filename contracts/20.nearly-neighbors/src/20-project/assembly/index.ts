@@ -79,15 +79,13 @@ class ProjectFunding {
 
 /**
  * @class Expense
- * @property label  - descriptive tag for expense
- * @property tags   - collection of tags used to organize expenses
+ * @property label  - descriptive name for expense
  * @property amount - default to zero for expense notes
  */
 @nearBindgen
 class Expense {
   constructor(
     public label: string,
-    public tags: string[],
     public amount: u128 = u128.Zero
   ) {}
 }
@@ -199,8 +197,7 @@ export function add_contributor(
 
 /**
  * @function add_expense
- * @param label   - expense label
- * @param tags    - expense tags
+ * @param label {string} - expense label
  * @param amount  - expense amount
  *
  * Track an expense.
@@ -211,13 +208,12 @@ export function add_contributor(
  */
 export function add_expense(
   label: string,
-  tags: string[],
   amount: u128 = u128.Zero
 ): void {
   assert_configured();
 
   const project = storage.get<Project>(PROJECT_KEY)!;
-  const expense = new Expense(label, tags, amount);
+  const expense = new Expense(label, amount);
   project.funding!.expenses.push(expense);
 
   resave_project(project);
