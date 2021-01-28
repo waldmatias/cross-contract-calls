@@ -1,14 +1,14 @@
 import { VMContext, u128 } from 'near-sdk-as';
 import * as contract from '../assembly';
-import { ONE_NEAR } from '../../utils';
+import { ONE_NEAR, toYocto } from '../../utils';
 
 /**
  * == CONFIG VALUES ============================================================
  */
 const TITLE = 'common grounds';
 const DESCRIPTION = 'your neighborhood coffee spot';
-const GOAL = u128.mul(ONE_NEAR, u128.from(50));
-const MIN_DEPOSIT = u128.mul(ONE_NEAR, u128.from(3));
+const GOAL = toYocto(50);
+const MIN_DEPOSIT = toYocto(3);
 const FACTORY_ACCOUNT_ID = 'neighbors.factory';
 
 /**
@@ -23,7 +23,7 @@ const setCurrentAccount = (): void => {
 };
 
 const attachDeposit = (deposit: number): void => {
-  VMContext.setAttached_deposit(u128.mul(ONE_NEAR, u128.from(deposit)));
+  VMContext.setAttached_deposit(toYocto(deposit));
 };
 
 const attachMinDeposit = (): void => {
@@ -106,7 +106,7 @@ describe('20.nearly-neighbors.proposal', () => {
       const supporters = contract.list_supporters();
       expect(supporters.length).toBe(1);
       expect(supporters[0].account).toBe('cc');
-      expect(supporters[0].amount).toBe(u128.mul(ONE_NEAR, u128.from(4)));
+      expect(supporters[0].amount).toBe(toYocto(4));
     });
 
     it('updates the funding total', () => {
@@ -118,9 +118,7 @@ describe('20.nearly-neighbors.proposal', () => {
       contract.add_supporter();
 
       expect(contract.list_supporters().length).toBe(1);
-      expect(contract.get_funding_total()).toBe(
-        u128.mul(ONE_NEAR, u128.from(5))
-      );
+      expect(contract.get_funding_total()).toBe(toYocto(5));
     });
   });
 
@@ -166,7 +164,7 @@ describe('20.nearly-neighbors.proposal', () => {
       const supporters = contract.list_supporters();
       expect(supporters.length).toBe(1);
       expect(supporters[0].account).toBe('carol');
-      expect(supporters[0].amount).toBe(u128.mul(ONE_NEAR, u128.from(4)));
+      expect(supporters[0].amount).toBe(toYocto(4));
     });
   });
 
@@ -191,7 +189,7 @@ describe('20.nearly-neighbors.proposal', () => {
       const proposal = contract.get_proposal();
 
       expect(proposal.details!.title).toBe(TITLE);
-      const newTotal = u128.mul(ONE_NEAR, u128.from(4));
+      const newTotal = toYocto(4);
       proposal.details!.title = 'new title';
       proposal.funding!.total = newTotal;
 
