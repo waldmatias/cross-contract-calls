@@ -2,10 +2,10 @@
   "workspaces": [
     "contracts/00.orientation/src/00-local",
     "contracts/00.orientation/src/00-remote",
-    "contracts/10.linkdrop/src/10",
-    "contracts/20.nearly-neighbors/src/20-factory",
-    "contracts/20.nearly-neighbors/src/20-proposal",
-    "contracts/20.nearly-neighbors/src/20-project"
+    "contracts/01.using-single-calls/src/01-local",
+    "contracts/01.using-single-calls/src/01-loopback",
+    "contracts/01.using-single-calls/src/01-remote",
+    "contracts/10.linkdrop/src/10"
   ],
   "in-progress": [
     "contracts/02.using-multiple-calls/src/02",
