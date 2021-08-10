@@ -18,7 +18,7 @@
     "build:10": "yarn build -d contracts/10.linkdrop/src/10",
     "build": "asb --target debug",
     "build:release": "asb",
-    "test": "yarn test:unit && yarn test:simulate",
+    "test": "jest",
     "test:simulate": "yarn build && cargo test -- --nocapture",
     "clean": "rm -rf ./build",
     "test:debug": "node --inspect-brk ./node_modules/.bin/asp"
@@ -27,6 +27,11 @@
   "author": "hello@near.org",
   "license": "ISC",
   "devDependencies": {
-    "near-sdk-as": "^2.2.0"
+    "@types/jest": "^26.0.24",
+    "jest": "^27.0.6",
+    "near-runner": "0.2.0",
+    "near-sdk-as": "^2.2.0",
+    "ts-jest": "^27.0.4",
+    "typescript": "^4.3.5"
   }
 }
