@@ -116,7 +116,7 @@ function xcc__high_level__batch_actions(remote_account: string, remote_method: s
  * with which we get the pointer to the "data start" as well as the length of the data array_fc.
  *
  * @param account the remote account to call
-high_ba* @param method the specific method on the remote account to call
+ * @param method the specific method on the remote account to call
  * @param args the arguments to pass to the remote method during the call_fc
  */
 function xcc__low_level__function_call(remote_account: string, remote_method: string, remote_method_args: string): void {
@@ -149,7 +149,7 @@ function xcc__low_level__function_call(remote_account: string, remote_method: st
  * with which we get the pointer to the "data start" as well as the length of the data array_fc.
  *
  * @param account the remote account to call
-high_ba* @param method the specific method on the remote account to call
+ * @param method the specific method on the remote account to call
  * @param args the arguments to pass to the remote method during the call_fc
  */
 function xcc__low_level__batch_actions(remote_account: string, remote_method: string, remote_method_args: string): void {

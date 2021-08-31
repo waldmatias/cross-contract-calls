@@ -17,10 +17,10 @@ The first few lessons are designed to build a clear mental model of how cross co
 00.orientation                # explore basic concepts and examples
 01.using-single-calls         # explore several patterns starting with a single cross contract call
 02.using-multiple-calls       # explore patterns focused on coordinating multiple cross contract calls
-03.using-callbacks            # expore cross contract calls with callbacks
+03.using-callbacks            # explore cross contract calls with callbacks
 ```
 
-Later lessons build on the basics with more releastic (and naturally more complicated) examples.
+Later lessons build on the basics with more realistic (and naturally more complicated) examples.
 
 ```sh
 10.linkdrop                   # a more complete example of using cross contract calls in a real world use case

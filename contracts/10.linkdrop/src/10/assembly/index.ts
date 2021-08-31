@@ -97,7 +97,7 @@ export function claim(account_id: AccountId): void {
 /**
  * https://github.com/near/near-linkdrop/blob/63a4d0c4acbc2ffcf865be2b270c900bea765782/src/lib.rs#L91-L119
  *
- * Create new account and and claim tokens to it.
+ * Create new account and claim tokens to it.
  *
  * @param new_account_id
  * @param new_public_key
@@ -222,18 +222,18 @@ class OnAccountCreatedAndClaimedArgs {
 /**
  * https://github.com/near/near-linkdrop/blob/63a4d0c4acbc2ffcf865be2b270c900bea765782/src/lib.rs#L180-L182
  *
- * Returns the likdrop funds associated with a given public-key.
+ * Returns the linkdrop funds associated with a given public-key.
  * @param public_key
  */
 export function get_key_balance(public_key: Base58PublicKey): u128 {
-  //decode and re-encode in cannonical form
+  //decode and re-encode in canonical form
   let public_key_arr = decodePk(public_key)
   let canonical_pk = base58.encode(public_key_arr)
   //return near amount associated with the public key
   return accounts.getSome(canonical_pk)
 }
 
-// decode a string represting a Key in the form ed25519:xxxxxxxxxxxxxx into a Uint8Array
+// decode a string representing a Key in the form ed25519:xxxxxxxxxxxxxx into a Uint8Array
 export function decodePk(key: PublicKey): Uint8Array {
   if (key.indexOf(':') > -1) {
     const keyParts = key.split(':')
