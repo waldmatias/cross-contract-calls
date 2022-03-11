@@ -113,6 +113,7 @@ Para capturar el valor de retorno de la llamada, el desarrollador debe explicita
 - utilizar un callback a otra función. 
 
 **cómo usar esta interfaz?**
+
 Esta interfaz puede ser usada en cuatro patrones que pueden ser recombinados para crear escenarios mas complejos: 
 1. Ignorar por completo el valor de retorno.
 2. Reemplazar el valor de retorno de la función ejecutada con el nuevo valor de retorno del método remoto. 
@@ -314,7 +315,114 @@ Para capturar el valor de retorno de la llamada, el desarrollador debe explicita
 
 Estas opciones para obtener un valor de retorno no son mutuamente exclusivas. Los desarrolladores pueden no usar ninguna, una, o ambas, al realizar llamadas entre contratos, dependiendo de los requerimientos. 
 
-**cuándo usar esta interfaz?**
+**cómo usar esta interfaz?**
+    
+Las llamadas por lote pueden ser consideradas como un superconjunto de la interfaz de llamadas a funciones explicada anteriormente. Es posible, entonces, recrear todos los patrones expuestos anteriormente utilizando esta nueva interfaz, con una única excepción. 
 
+*La interfaz por lote maneja de manera diferente los retornos de valores, y como consecuencia, no tiene la habilidad de resolver la llamada entre contratos con `returnAsResult()` que reemplazaria el valor de retorno del método actual (local) con el del método remoto.*
+
+> **La única manera de obtener los resultados de una llamada entre contratos, iniciada por la interfaz de llamada por lote, es utilizando un método callback.**
+
+Repitiendo la misma lista escrita anteriormente: 
+1. Ignorar por completo el valor de retorno.
+2. **(no soportada por llamada por lote)**Reemplazar el valor de retorno de la función ejecutada con el nuevo valor de retorno del método remoto. 
+3. Obtener el valor de retorno del método remoto utilizando un callback. 
+4. Consolidar el valor de retorno de múltiples llamadas a métodos remotos. 
+
+1. "Dispara y Olvida" (_el valor de retorno del método remoto será ignorado_)
+
+```ts
+export function fire_and_forget(): void {
+  const promise = ContractPromiseBatch.create(remote_account) // nombre de cuenta contrato remoto
+    .function_call(
+      remote_method,                           // nombre de método remoto
+      remote_args,                             // arugmentos de método remoto
+      u128.Zero                                // deposito asociado a la llamada
+      BASIC_GAS,                               // gas asociado a la llamada (~5 Tgas (5e12) por "salto")
+    )
+}
+```
+
+2. "Captura la bandera" (_el valor de retorno del médoto remoto se **convierte** en el valor de retorno del método actual_)
+
+**NO SOPORTADA** por esta interfaz.
+
+*La interfaz de llmada por lote requiere de un método callback para obtener los resultados de una transacción entre contratos*
+
+3. "Tal vez llamame" (_el valor de retorno del método remoto será enviado, por un callback, a otro método_)
+
+```ts
+export function call_me_maybe(): void {
+  const callback_account = context.contractName
+  const callback_method = 'on_complete'
+  const callback_args = 'done and done'
+
+
+  ContractPromiseBatch.create(remote_account)  // nombre de cuenta contrato destino
+    .function_call(
+      remote_method,                           // nombre de método remoto
+      remote_args,                             // argumentos del método remoto
+      u128.Zero,                               // deposito asociado a la llamada 
+      BASIC_GAS,                               // gas asociado a la llamada (~5 Tgas (5e12) por "salto")
+    )
+
+    // registrar callback
+    .then(callback_account)                    // nombre de cuenta contrato callback
+    .function_call(
+      callback_method,                         // nombre de callback
+      callback_args,                           // argumentos de callback
+      u128.Zero,                               // deposito asociado al callback
+      BASIC_GAS,                               // gas asociado al callback (~5 Tgas (5e12) por "salto")
+    )
+}
+
+// el método callback
+export function on_complete(args: string): void {
+  logging.log(args)
+}
+```
+
+4. "Todos juntos" (_el valor de retorno de cada método remoto será consolidado en una tupla_)
+
+```ts
+export function all_together_now(): void {
+  const promise_1 = ContractPromiseBatch.create(remote_account_1)  // nombre de cuenta contrato remoto
+    .function_call(
+      remote_method_1,                         // nombre de método remoto
+      remote_args_1,                           // argumentos de método remoto
+      u128.Zero,                               // deposito asocido a la llamada
+      BASIC_GAS,                               // gas asociado a la llamada (~5 Tgas (5e12) por "salto")
+    )
+
+  const promise_2 = ContractPromiseBatch.create(remote_account_2)   // nombre de cuenta contrato remoto
+    .function_call(
+      remote_method_2,                         // nombre de método remoto
+      remote_args_2,                           // arugmentos de método remoto
+      u128.Zero,                               // deposit asoaciado a la llamada
+      BASIC_GAS,                               // gas asociado a la llamada (~5 Tgas (5e12) por "salto")
+   )
+
+  // consolidar múltiples llamadas
+  const promise_3 = ContractPromise.all(promise_1, promise_2)
+
+  const callback_account = context.contractName
+  const callback_method = 'on_all_complete'
+  const callback_args = 'all for one, done and done'
+
+  // para obtener los resultados de estas dos llamadas, registra una tercera como callback
+  promise_3.then(callback_account)             // callback contract account name
+    .function_call(
+      callback_method,                         // callback method name
+      callback_args,                           // callback method arguments
+      u128.Zero,                               // deposit attached to the callback
+      BASIC_GAS,                               // gas attached to the callback (~5 Tgas (5e12) per "hop")
+    )
+}
+
+// el método callback en sí
+export function on_all_complete(args: string): void {
+  logging.log(args)
+}
+```
 
 
