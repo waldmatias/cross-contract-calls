@@ -91,8 +91,8 @@ Sea por tener una ventaja al usar contratos existentes en la red, o creando por 
 El patrón mas común para realizar llamadas entre contratos, es llamando una función en un contrato desde otro contrato. Esta capacidad se logra mediante una interfaz dedicada para realizar este tipo de llamadas. 
 
 Esta interfaz está implementada en dos niveles de abstracción: 
-- Una interfaz estilo C de bajo nivel, que mapea al API de la máquina vritual de NEAR.
 - Una interfaz ergonómica de alto nivel que provee soporte para tipos de AssemblyScript y Rust.
+- Una interfaz estilo C de bajo nivel, que mapea al API de la máquina vritual de NEAR.
 
 ### Interfaz de Alto Nivel
 
@@ -259,5 +259,33 @@ export function promise_then(
   ): u64;
 ```
 
+## Llamadas por Lote
+
+Otra forma de realizar llamadas entre contratos es creando una transacción utilizando una o mas acciones primitivas, para luego enviarla a la red desde un contrato. Esta funcionalidad la provee una interfaz dedicada para invocar estas llamadas. 
+
+Esta interfaz está implementada en dos niveles de abstracción: 
+- Una interfaz ergonómica de alto nivel que provee soporte para tipos de AssemblyScript y Rust.
+- Una interfaz estilo C de bajo nivel, que mapea al API de la máquina vritual de NEAR.
+
+### Ocho (8) Acciones
+
+El protocolo NEAR provee ocho (8) acciones primitivas que pueden utilizarse para producir una sola transacción. Este diseño provee un mecanismo flexible para controlar el comportamiento de la red por parte de los desarrolladores.
+
+Utilizando llamadas por lote entre contratos, los desarrolladores añaden cualquiera de las siguientes ocho acciones NEAR a un lote de transacciones, el cual es entonces procesado por la red: 
+
+- Administrar Cuentas
+  - `CreateAccount`: crear una nueva cuenta (para una persona, contrato, nevera, etc.).
+  - `DeleteAccount`: eliminar una cuenta (y transferir el balance a una cuenta beneficiaria).
+- Administrar Llaves de Acceso (Access Keys)
+  - `AddKey`: añadr una llave a una cuenta (con acceso FullAccess o con acceso FunctionCall).
+  - `DeleteKey`: eliminar una llave existente de una cuenta.
+- Administrar Dinero
+  - `Transfer`: mover tokens de una cuenta a otra.
+  - `Stake`: expresar interés en asumir el rol de validador en la próxima oportunidad disponible.
+- Administrar Contratos: 
+  - `DeployContract`: desplegar el contrato. 
+  - `FunctionCall`: invocar un método de un contrato (incluyendo presupuesto de cómputo y almacenamiento).
+
+### Interfaz de Alto Nivel
 
 
