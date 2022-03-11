@@ -117,7 +117,7 @@ These options for capturing return values are not mutually exclusive.  Developer
 
 This interface can be used in four patterns that can be recombined for more complex scenarios:
 1. Ignore the return value altogether
-2. Replace the return value of the same current method with the return new value of the remote method
+2. Replace the return value of the same current method with the new return value of the remote method
 3. Capture the return value of the remote method using a callback
 4. Aggregate the return value of multiple remote methods
 

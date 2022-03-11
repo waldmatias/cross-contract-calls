@@ -1,8 +1,8 @@
 ## Guía para llamadas entre Contratos (Cross-Contract)
 
-El protocolo NEAR permite la creación de transacciones en el código de un contrato. Esto, con el fin de considerar los casos de uso mas comunes, como por ejemplo llamar a un contrato desde otro, así como patrones mas avanzados, como usar un contrato como fábrica (Factory) para generar, o servir como Proxy para otros contratos. El mecanismo usado tiene muchos nombres que generan confusión al principio, hasta que uno se da cuenta que todo el mundo esta hablando de diferentes partes de un mismo elefante, solo que visto desde perspectivas diferentes. 
+El protocolo NEAR permite la creación de transacciones en el código de un contrato. De esta nanera considera los casos de uso mas comunes, como llamar a un contrato desde otro, pero tambien patrones de uso mas avanzados, como usar un contrato como fábrica (Factory) para generar, o servir como Proxy, a otros contratos. El mecanismo en si tiene muchos nombres que generan confusión al principio, pero luego uno se da cuenta de que todo el mundo está hablando de diferentes partes de un mismo elefante, solo que visto desde perspectivas diferentes. 
 
-### Recibos
+### Recibos (Receipts)
 
 Todas las llamadas entre contratos (también conocidas como "xcc") utilizan las mismas estructuras de datos: `ActionReceipts` y `DataReceipts`.
 
@@ -15,7 +15,7 @@ Puede leer más sobre estos conceptos en la [documentación técnica](https://no
 
 Existen dos (2) niveles de abstracción en el SDK de NEAR para AssemblyScript y Rust. El nivel más alto es el recomendado para los novatos a la plataforma, ya que es más amigable para los desarrolladores. Los archivos incluidos en este módulo proveen ejemplos de cada uno de estos niveles, ofreciendo suficiente contexto (esperamos) que permita entender claramente como usarlos.
 
-- **Alto Nivel**: \
+- **Alto Nivel**: 
   - API de llamadas de funciones simples (Function Call API) \
     Recomendada cuando se necesita realizar una llamada a una función, o varias llamadas a funciones entre contratos. Esta API es bastante similar entre sus versiones de AssemblyScript y Rust, con algunas diferencias menores. 
   - API de Acciones por Lote (Batch Actions API) \ 
@@ -57,32 +57,32 @@ contracts
 
 Existen algunas preguntas clave que generalmente surgen debido al contenido de este módulo, incluyendo: 
 
-- Cuales son las ventajas y desventajas al usar una u otra capa de abstracción?
-  - Hay una diferencia en el costo de almacenamiento, resultante de usar el API de alto nivel versus el API de bajo nivel. 
+- Cuales son las ventajas y desventajas de usar uno u otro nivel de abstracción?
+  - Hay una diferencia en el costo de almacenamiento, dependiente si se usa el API de alto nivel versus el API de bajo nivel. 
   - Hay una diferencia asociada al costo de gas usado (`burnt_gas`) para cada una de estas llamadas. 
 
 - Cómo son las "Promises" reconciliadas en la blockchain? 
   - Las "Promises" en la plataforma NEAR son el nombre amigable, para los desarrolladores, de los recibos `ActionReceipt` y `DataReceipt`.
-  - Las "Promises" se reconcilian en los límites de las funciones y hasta el momento no hay soporte para un mecanismo como `await` en el ámbito (scope) de una función en un contrato. 
-  - El valor de retorno de una Promise estará disponible en un bloque futuro y hay exactamente dos maneras de capturar este valor: 
+  - Las "Promises" se reconcilian en los límites de las funciones, y hasta el momento no hay soporte para un mecanismo como `await` en el ámbito (scope) de una función en un contrato. 
+  - El valor de retorno de un "Promise" estará disponible en un bloque futuro, y hay únicamente dos maneras de capturar este valor: 
     1. Como el valor de retorno de la función exportada que eventualmente inició la llamada a la Promise, aunque indique que retorna `void`.
     2. Como los "resultados de la Promise", capturados por una función callback. 
 
 ## Conceptos clave de llamadas entre contratos
 
-La posibilidad de llamar a un método de un contrato, desde otro contrato, es una funcionalidad invaluable en NEAR, debido a la manera en que están relacionadas las cuentas, contratos y pedazos (shards) en el protocolo NEAR. 
+La posibilidad de llamar a un método de un contrato, desde otro contrato, es una funcionalidad invaluable en NEAR, debido a la manera en que están relacionadas las cuentas, contratos, y fragmentos (shards) en el protocolo NEAR. 
 
 Cada cuenta en NEAR puede tener a lo sumo un contrato. Las cuentas de usuario generalmente no contienen un contrato mientras que las cuentas de DApps _si_ lo contienen. Algunas DApps hasta pueden requerir un sistema de contratos correlacionados que coordinan el trabajo de la DApp, en cuyo caso estos contratos estarán, probablemente, contenidos en subcuentas, un esquema válido de nombres para cuentas parecido a DNS. Por ejemplo, `dapp.near` puede ser el nivel de cuenta más alto, teniendo subcuentas como `module1.dapp.near`, `module2.dapp.near`, etc. para cada una de las partes correlacionadas de la DApp. 
 
-Las cuentas "viven" en un único pedazo (shard) al cual califican de "hogar". Con esto queremos decir: todo su estado es almacenado en un único pedazo (shard), y todas las llamadas a un contrato en esa cuenta, son enrutadas en la red a los nodos que validan a ese pedazo (shard). Adicionalmente, el protocolo se reserva el derecho de redistribuir cuentas entre los pedazos (shards) lo cual beneficia a la red, ya que aisla cuentas con alta demanda (es decir, contratos) a un pedazo (shard) propio donde no afectan el ancho de banda de todos los otros pedazos (shards) en el sistema. Al día de escribir este contenido, NEAR MainNet (la red principal) tiene un solo pedazo (shard) pero el equipo de desarrollo NEAR Core y los Guilds en la comunidad trabajan arduamente y progresan a una red multi-pedazo (muti-shard).
+Las cuentas "viven" en un único fragmento (shard) al cual califican de "hogar". Con esto queremos decir: todo su estado es almacenado en un único fragmento, y todas las llamadas a un contrato en esa cuenta, son enrutadas en la red a los nodos que validan a ese fragmento. Adicionalmente, el protocolo se reserva el derecho de redistribuir cuentas entre los fragmentos, lo cual beneficia a la red ya que aisla cuentas con alta demanda (es decir, contratos) a un fragment propio donde no afectarán el ancho de banda de todos los otros fragmentos del sistema. Al día de escribir este contenido, NEAR MainNet (la red principal) tiene un solo fragmento, pero el equipo de desarrollo NEAR Core y los Guilds en la comunidad trabajan arduamente y progresan a una red multi-fragmento (multi-shard).
 
 Los desarrolladores que entiendan y vean las ventajas de usar este modelo para cuentas, reconoceran varios beneficios: 
 
 - Cualquier contrato existente en la red (es decir, contratos core) pueden ser reutilizados en nuevas DApps mediante llamadas entre contratos. 
-- DApps con "hot spots" (puntos con costo computacional elevado) en el código del contrato, pueden reorganizarse y separarse en múltples contratos, utilizando así las ventajas de llamadas entre contratos y mejorar el rendimiento. 
+- DApps con puntos "hot spots" en el código del contrato (puntos con costo computacional elevado), pueden reorganizarse y separarse en múltples contratos, utilizando así las ventajas de llamadas entre contratos, y mejorar el rendimiento. 
 - DApps con lógica compleja pueden ser reorganizados en contratos más simples y pequeños, simplificando el mantenimiento e incrementando las oportunidades de reutilización de contratos.
-- DApps con transacciones de larga duración, que son imposibles o impracticas de acomodar en un solo bloque, pueden ser reorganizadas en múltiples llamadas entre contratos. 
-- DApps cuyo diseño se beneficia de realizar múltiples llamadas en paralelo pueden usar llamadas entre contratos para consolidar los resultados.
+- DApps con transacciones de larga duración, que son imposibles o impracticas de acomodar en un solo bloque, pueden reorganizarse en múltiples llamadas entre contratos. 
+- DApps cuyo diseño se beneficia de realizar múltiples llamadas en paralelo, pueden usar llamadas entre contratos para consolidar los resultados.
 
 Sea por tener una ventaja al usar contratos existentes en la red, o creando por su cuenta un sistema de contratos interdependientes, el poder realizar llamadas entre contratos es una funcionalidad invaluable del protocolo NEAR y un diferenciador único de esta red de capa 1. 
 
@@ -100,19 +100,164 @@ La interfaz de alto nivel está diseñada para parecerse a la interfaz de Promis
 
 - `ContractPromise.create`: (método estático) utilizado para el patrón de uso más común, llamar un método de un contrato desde otro.
 - `ContractPromise.all`: (método estático) permite consolidar los resultados de múltiples llamadas a métodos. 
-- `ContractPromise.then`: permite encadenar múltiples llamadas a métodos (es decir, ejecuta uno luego que el otro complete su ejecución).
+- `ContractPromise.then`: permite encadenar múltiples llamadas a métodos (es decir, ejecutar uno luego que el anterior en la cadena termine su ejecución).
 
-**cuando usar esta interfaz?**
+**cuándo usar esta interfaz?**
 
-Esta interfaz está recomendada para todas las llamadas entre contratos que invocan un contrato desde un método en otro contrato. Este escenario es el 80% de los casos. 
+Esta interfaz está recomendada para todas las llamadas entre contratos que invocan a un contrato desde un método en otro contrato. Este escenario es el 80% de los casos. 
 
-El valor de retorno de la llamada al método no será implicitamente capturada o estará disponible. 
+El valor de retorno de la llamada al método no será implicitamente capturado ni estará disponible. 
 
 Para capturar el valor de retorno de la llamada, el desarrollador debe explicitamente escoger una de las siguientes opciones:
-- obtener luego de finalizar la llamada a la función actual. 
+- obtenerlo luego de finalizar la llamada a la función ejecutada. 
 - utilizar un callback a otra función. 
 
 **cómo usar esta interfaz?**
+Esta interfaz puede ser usada en cuatro patrones que pueden ser recombinados para crear escenarios mas complejos: 
+1. Ignorar por completo el valor de retorno.
+2. Reemplazar el valor de retorno de la función ejecutada con el nuevo valor de retorno del método remoto. 
+3. Obtener el valor de retorno del método remoto utilizando un callback. 
+4. Consolidar el valor de retorno de múltiples llamadas a métodos remotos. 
+
+1. "Dispara y Olvida" (_el valor de retorno del método remoto será ignorado_)
+
+```ts
+export function fire_and_forget(): void {
+  const promise = ContractPromise.create(
+    remote_account,                            // nombre de cuenta remoto
+    remote_method,                             // nombre de método remoto
+    remote_args,                               // argumentos de método remoto
+    BASIC_GAS,                                 // gas asociado a la llamada (~5 Tgas (5e12) por "salto")
+    u128.Zero                                  // deposito asociado a la llamada
+  )
+}
+```
+
+2. "Captura la bandera" (_el valor de retorno del médoto remoto se **convierte** en el valor de retorno del método actual_)
+
+```ts
+export function capture_the_flag(): void {
+    remote_account,                            // nombre de cuenta remoto
+    remote_method,                             // nombre de método remoto
+    remote_args,                               // argumentos de método remoto
+    BASIC_GAS,                                 // gas asociado a la llamada (~5 Tgas (5e12) por "salto")
+    u128.Zero                                  // deposito asociado a la llamada
+  )
+}
+  // reemplazar el valor de retorno de este método con el resultado de la Promise
+  promise.returnAsResult()
+}
+```
+
+3. "Tal vez llamame" (_el valor de retorno del método remoto será enviado, por un callback, a otro método_)
+
+```ts
+export function call_me_maybe(): void {
+  const callback_account = context.contractName
+  const callback_method = 'on_complete'
+  const callback_args = 'done and done'
+
+  ContractPromise.create(
+    remote_account,                            // nombre de cuenta remoto 
+    remote_method,                             // nombre de método remoto
+    remote_args,                               // argumentos de método remoto
+    BASIC_GAS,                                 // gas asociado a la llamada (~5 Tgas (5e12) por "salto")
+    u128.Zero                                  // deposito asociado a la llamada
+  )
+
+  // asociar callback
+  .then(
+    callback_account,                          // nombre de cuenta para callback
+    callback_method,                           // nombre de método callback
+    callback_args,                             // argumentos de método callback
+    BASIC_GAS,                                 // gas asociado al callbach (~5 Tgas (5e12) por "salto")
+    u128.Zero                                  // deposito asociado al callback
+  )
+}
+
+// el método callback en si
+export function on_complete(args: string): void {
+  logging.log(args)
+}
+```
+
+4. "Todos juntos" (_el valor de retorno de cada método remoto será consolidado en una tupla_)
+
+```ts
+export function all_together_now(): void {
+  const promise_1 = ContractPromise.create(
+    remote_account_1,                          // nombre de cuenta remoto
+    remote_method_1,                           // nombre de método remoto
+    remote_args_1,                             // argumentos de método remoto
+    BASIC_GAS,                                 // gas asociado a la llamda (~5 Tgas (5e12) por "salto")
+    u128.Zero                                  // deposito asociado a llamada
+  )
+
+  const promise_2 = ContractPromise.create(
+    remote_account_2,                          // nombre de cuenta remoto
+    remote_method_2,                           // nombre de método remoto
+    remote_args_2,                             // argumentos de método remoto
+    BASIC_GAS,                                 // ggas asociado a la llamda (~5 Tgas (5e12) por "salto")
+    u128.Zero                                  // deposito asociado a llamada
+  )
+
+  // consolidar las múltiples llamadas 
+  const promise_3 = ContractPromise.all(promise_1, promise_2)
+
+  // reemplazar el valor de retorno de este metodo con el valor de retorno de la consolidación de Promises
+  promise_3.returnAsResult()
+}
+```
+
+### Interfaz de Bajo Nivel
+
+Esta interfaz de bajo nivel al estilo C se comunica directamente con la máquina virtual de NEAR y tiene soporte de las siguientes operaciones: 
+
+- `promise_create`: usado en el patrón mas común, llamando un método de un contrato desde otro.
+- `promise_and`: permite consolidar los resultados de múltiples llamadas a métodos.
+- `promise_then`: permite encadenar múltiples llamadas a métodos (es decir, ejecutar una llamada luego que la anterior en la cadena termine de ejecutar).
+
+**cuándo usar esta interfaz?**
+
+El uso de esta interfaz no esta recomendada para los desarrolladores. En su lugar, por favor use la interfaz de alto nivel explicada anteriormente. 
+
+**cómo usar esta interfaz?**
+
+Esta interfaz requiere que todas las entradas sean convertidas a `UInt8Arrays`, y su longitud y puntero `datastart` sea provisto a la función. El valor de retorno de esta interfaz es un valor entero, que identifica de manera única el recibo `ActionReceipt` generado por el método utilizado por el Runtime de NEAR Protocol para coordinar el flujo de llamadas entre contratos y las cuentas afectadas en el tiempo (es decir, bloques).
+
+```ts
+export function promise_create(
+    account_id_len: u64,
+    account_id_ptr: u64,
+    method_name_len: u64,
+    method_name_ptr: u64,
+    arguments_len: u64,
+    arguments_ptr: u64,
+    amount_ptr: u64,
+    gas: u64
+  ): u64;
+```
+
+```ts
+export function promise_then(
+    promise_index: u64,
+    account_id_len: u64,
+    account_id_ptr: u64,
+    method_name_len: u64,
+    method_name_ptr: u64,
+    arguments_len: u64,
+    arguments_ptr: u64,
+    amount_ptr: u64,
+    gas: u64
+  ): u64;
+```
+
+```ts
+  export declare function promise_and(
+    promise_idx_ptr: u64,
+    promise_idx_count: u64
+  ): u64;
+```
 
 
 
