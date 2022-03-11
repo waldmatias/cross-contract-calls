@@ -15,7 +15,7 @@ Puede leer más sobre estos conceptos en la [documentación técnica](https://no
 
 Existen dos (2) niveles de abstracción en el SDK de NEAR para AssemblyScript y Rust. El nivel más alto es el recomendado para los novatos a la plataforma, ya que es más amigable para los desarrolladores. Los archivos incluidos en este módulo proveen ejemplos de cada uno de estos niveles, ofreciendo suficiente contexto (esperamos) que permita entender claramente como usarlos.
 
-- **Alto Nivel**: \
+- **Alto Nivel**:
   - API de llamadas de funciones simples (Function Call API) \
     Recomendada cuando se necesita realizar una llamada a una función, o varias llamadas a funciones entre contratos. Esta API es bastante similar entre sus versiones de AssemblyScript y Rust, con algunas diferencias menores. 
   - API de Acciones por Lote (Batch Actions API) \ 
