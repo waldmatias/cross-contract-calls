@@ -294,16 +294,16 @@ Using batch cross-contract calls, developers append any one of the following 8 s
 The high level interface uses a method chaining interface where transactions can be built up by chaining calls which append various actions.
 
 - `ContractPromiseBatch.create`: (static method) create a promise which targets a specific receiver account, the account on which the transaction will be applied
-- `ContractPromiseBatch#create_account`: create the receiver account
-- `ContractPromiseBatch#delete_account`: delete the receiver account
-- `ContractPromiseBatch#add_access_key`: add a function call access key to the receiver account
-- `ContractPromiseBatch#add_full_access_key`: add a full access key to the receiver account
-- `ContractPromiseBatch#delete_key`: delete a key from the receiver account
-- `ContractPromiseBatch#transfer`: transfer NEAR tokens from the current account to the receiver account
-- `ContractPromiseBatch#stake`: cause the receiver account to stake tokens
-- `ContractPromiseBatch#deploy_contract`: deploy a contract (as an array of bytes) to the receiver account
-- `ContractPromiseBatch#function_call`: invoke a method on the contract hosted by the receiver account
-- `ContractPromiseBatch#then`: chain another transaction which targets a new (although possibly the same) receiver account
+- `ContractPromiseBatch.create_account`: create the receiver account
+- `ContractPromiseBatch.delete_account`: delete the receiver account
+- `ContractPromiseBatch.add_access_key`: add a function call access key to the receiver account
+- `ContractPromiseBatch.add_full_access_key`: add a full access key to the receiver account
+- `ContractPromiseBatch.delete_key`: delete a key from the receiver account
+- `ContractPromiseBatch.transfer`: transfer NEAR tokens from the current account to the receiver account
+- `ContractPromiseBatch.stake`: cause the receiver account to stake tokens
+- `ContractPromiseBatch.deploy_contract`: deploy a contract (as an array of bytes) to the receiver account
+- `ContractPromiseBatch.function_call`: invoke a method on the contract hosted by the receiver account
+- `ContractPromiseBatch.then`: chain another transaction which targets a new (although possibly the same) receiver account
 
 **when?**
 
