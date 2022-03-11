@@ -288,4 +288,33 @@ Utilizando llamadas por lote entre contratos, los desarrolladores añaden cualqu
 
 ### Interfaz de Alto Nivel
 
+La interfaz de alto nivel usa una cadena de ejecución donde las transacciones son construidas encadenando llamadas que agregan acciones diferentes. 
+  
+- `ContractPromiseBatch.create`: (método estático) crea un Promise con una cuenta específica como destino, que es la cuenta en la cual la transacción sera efectuada. 
+- `ContractPromiseBatch.create_account`: crea la cuenta destino.
+- `ContractPromiseBatch.delete_account`: elimina la cuenta destino. 
+- `ContractPromiseBatch.add_access_key`: añadir una llave de acceso para llamada (Function Call access key) a la cuenta destino. 
+- `ContractPromiseBatch.add_full_access_key`: añadir una llave de acceso completo (Full Access key) a la cuenta destino. 
+- `ContractPromiseBatch.delete_key`: eliminar una llave de la cuenta destino.
+- `ContractPromiseBatch.transfer`: transferir tokens NEAR desde la cuenta actual a la cuenta destino. 
+- `ContractPromiseBatch.stake`: realiza una operación stake en la cuenta destino.
+- `ContractPromiseBatch.deploy_contract`: despliega un contrato (arreglo de bytes) a la cuenta destino. 
+- `ContractPromiseBatch.function_call`: invocar un método en el contrato contenido en la cuenta destino. 
+- `ContractPromiseBatch.then`: encadena otra transacción con una nueva cuenta destino (aunque puede ser la misma).
+
+**cuándo usar esta interfaz?**
+
+Esta interfaz es recomendada para todas las llamadas entre contratos que deban crear transacciones compuestas de acciones mas allá de `FunctionCall` (aunque esta acción específica _también_ es soportada por esta interfaz). Este mecanismo anorda el 20% de los casos de uso que uno pueda imaginarse, a la fecha de escritura de esta guía.
+
+El valor de retorno de la llamada al método no será implicitamente capturado ni estará disponible. 
+
+Para capturar el valor de retorno de la llamada, el desarrollador debe explicitamente escoger una de las siguientes opciones:
+- obtenerlo luego de finalizar la llamada a la función ejecutada. 
+- utilizar un callback a otra función. 
+
+Estas opciones para obtener un valor de retorno no son mutuamente exclusivas. Los desarrolladores pueden no usar ninguna, una, o ambas, al realizar llamadas entre contratos, dependiendo de los requerimientos. 
+
+**cuándo usar esta interfaz?**
+
+
 
