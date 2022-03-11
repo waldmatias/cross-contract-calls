@@ -301,7 +301,7 @@ La interfaz de alto nivel usa una cadena de ejecución donde las transacciones s
 - `ContractPromiseBatch.stake`: realiza una operación stake en la cuenta destino.
 - `ContractPromiseBatch.deploy_contract`: despliega un contrato (arreglo de bytes) a la cuenta destino. 
 - `ContractPromiseBatch.function_call`: invocar un método en el contrato contenido en la cuenta destino. 
-- `ContractPromiseBatch.then`: encadena otra transacción con una nueva cuenta destino (aunque puede ser la misma).
+- `ContractPromiseBatch.then`: encadena una transacción a otra transacción, cuyo destino es una cuenta nueva (aunque puede ser la misma).
 
 **cuándo usar esta interfaz?**
 
@@ -424,5 +424,125 @@ export function on_all_complete(args: string): void {
   logging.log(args)
 }
 ```
+
+Adicionalmente, la interfaz por lote permite realizar llamadas entre contratos que no son posibles utilizando la interfaz de llamada por función. Usando llamadas por lote, los desarrolladores pueden crear y transmitir cualquier transacción imaginable desde _su contrato_. 
+
+Esto ofrece patrones muy poderosos a la hora de trabajar con contratos que incluyen (pero no limitan) los siguientes: 
+
+- Patrón Proxy: los contratos pueden redireccionar transferencias de una cuenta a otra. 
+- Patrón Fábrica: los contratos pueden generar cuentas nuevas, para luegar añadirles llaves y desplegar un contrato a esas cuentas. 
+- Patrón Freemium: los contratos pueden agregar llaves de acceso a funciones con una tarifa precalculada, para usuarios que estén en período de prueba y/o evaluación. 
+
+1. "Foxy Proxy" (_un contrato puede recibir llamadas y redireccionarlas a otros contratos_).
+
+```ts
+export function foxy_proxy(): void {
+  const attached_deposit = context.attachedDeposit
+
+  const part_a = u128.div(attached_deposit, 2)
+  const part_b = u128.div(attached_deposit, 2)
+
+  ContractPromiseBatch.create(recipient_a).transfer(part_a)
+  ContractPromiseBatch.create(recipient_b).transfer(part_b)
+}
+```
+
+2. "La Fábrica X" (_un contrato puede crear cuentas nuevas, desplegar contratos a éstas e inicializar su estado_)
+
+```ts
+export function the_x_factory(contract: string, account: string, key: string): void {
+  // obtener fondos para una cuenta nueva de un depósito adjunto
+  const funding = context.attachedDeposit
+
+  //  contratos desplegables pueden ser almacenados como strings codificadas en Base64 en algun registro desplegado como parte del contrato fábrica
+  const dynamicContract = base64.decode(contractRegistry.getSome(contract))
+
+  ContractPromiseBatch.create(account)
+    .create_account()                          // crear nuevo contrato
+    .transfer(funding)                         // depositar 
+    .add_full_access_key(util.decode(key))     // añadir llave de acceso completo para que el iniciador de la llmada pueda controlar la cuenta
+    .deploy_contract(dynamicContract)          // desplegar un contrato pre-existente a la cuenta
+}
+```
+
+3. "Freemium convertido en Premium" (_un contato puede administrar las llaves de acceso a llamada por función bajo un esquema de tiempo y presupuesto limitado fremium_)
+
+```ts
+export function freemium_becometh_premium(user: string, key: string): void {
+  const dapp_account = context.contractName
+  const fremium_dapp_user_account = user + '.' + dapp_account
+
+  const ONE_NEAR = u128.from(10 ^ 24)
+  const TRIAL_BUDGET = u128.mul(u128.from(10), ONE_NEAR) // 10 NEAR
+  const ACCOUNT_BALANCE = u128.mul(u128.from(11), ONE_NEAR) // 11 NEAR (dejar 1 NEAR para prevenir la eliminación de la cuenta de prueba)
+
+  ContractBatchPromise.create(fremium_dapp_user_account)
+    .create_account()
+    .transfer(ACCOUNT_BALANCE)
+    .add_access_key(
+      key,                                     // llave pública relacionada a la llave privada en poder del usuario
+      TRIAL_BUDGET,                            // el presupuesto total asignado a la llave de acceso para esta función
+      dapp_account,                            // destinatario, la cuenta DApp que contiene el contrato DApp
+      ['trial_method_1', 'trial_method_2'],    // los métodos en esta Dapp que el usuario en período de prueba puede ejecutar usando esta llave de acceso
+      0                                        // asignar 0 a la llave de acceso de la llamada a funcion (FunctionCall access key)
+  )
+}
+```
+
+Dada la flexibiidad de esta interfaz, los desarrolladores pueden crear cualquier transacción imaginable desde el código de su contrato. 
+
+### Interfaz de Bajo Nivel
+
+- `promise_batch_create`: crea una Promise que especifica una cuenta destinataria específica, en la cual la transacción será aplicada.
+- `promise_batch_action_create_account` : crear la cuenta destino.
+- `promise_batch_action_delete_account`: eliminar la cuenta destino. 
+- `promise_batch_action_add_key_with_function_call`: añadir una llave de llamada de función a la cuenta destino.
+- `promise_batch_action_add_key_with_full_access`: añadir una llave de acceso completo a la cuenta destino.
+- `promise_batch_action_delete_key`: eliminar una llava de acceso en la cuenta destino. 
+- `promise_batch_action_transfer`: transferir tokens NEAR desde la cuenta actual a la cuenta destino.
+- `promise_batch_action_stake`: realizar un stake de tokens por parte de la cuenta destino.
+- `promise_batch_action_deploy_contract` : desplegar un contrato (como un arreglo de bytes) a la cuenta destino.
+- `promise_batch_action_function_call`: invocar un método del contrato contenido en la cuenta destino. 
+- `promise_batch_then`: encadena una transacción a otra transacción, cuyo destino es una cuenta nueva (aunque puede ser la misma).
+
+**cúando usar esta interfaz?**
+
+Esta interfaz no es recomendada para los desarrolladores. En su lugar, por favor use la interfaz de alto nivel. 
+
+**cómo usar esta interfaz?**
+
+Esta interfaz requiere que todas las entradas sean convertidas a `UInt8Arrays`, y su longitud y puntero `datastart` sea provisto a la función. El valor de retorno de esta interfaz es un valor entero, que identifica de manera única el recibo `ActionReceipt` generado por el método utilizado por el Runtime de NEAR Protocol para coordinar el flujo de llamadas entre contratos y las cuentas afectadas en el tiempo (es decir, bloques).
+
+```ts
+export function promise_batch_create(
+  account_id_len: u64,
+  account_id_ptr: u64
+): u64;
+```
+
+```ts
+export function promise_batch_then(
+  promise_index: u64,
+  account_id_len: u64,
+  account_id_ptr: u64
+): u64;
+```
+
+```ts
+// Otros métodos de la interfaz de bajo nivel (aquellos para cada acción) han sido omitidos por brevedad.
+// Pueden ser encontrados en el siguiente link: https://github.com/near/near-sdk-as/blob/master/sdk-core/assembly/env/env.ts#L159-L233
+```
+
+## Obteniendo Resultados
+
+Los desarrolladores escogen si (a) obtener o no los resultados y (b) cómo obtener éstos dependiendo de los requerimientos. 
+
+**cúando?**
+
+Los resultados de llamadas entre contratos son obtenidos de una de dos maneras: 
+- Los resultados de una llamada a un método remoto pasarán a ser el valor de retorno del médoto actual (local).
+- Los resultados del método llamado (remoto) pueden ser extraídos del ambiente utilizando la interfaz dedicada `ContractPromiseResult`.
+
+
 
 
