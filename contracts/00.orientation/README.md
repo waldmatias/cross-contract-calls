@@ -13,7 +13,7 @@ You can read more about these artifacts in the [technical documentation here](ht
 
 ### Levels of Abstraction
 
-There are three (2) levels of abstraction in the NEAR SDKs for AssemblyScript and Rust.  The lower level is not recommended for use by developers new to the platform since the higher level is more developer friendly.  The files included in this module provide examples of each of these levels of abstraction with (hopefully) enough context to make their use clear.
+There are two (2) levels of abstraction in the NEAR SDKs for AssemblyScript and Rust.  The lower level is not recommended for use by developers new to the platform since the higher level is more developer friendly.  The files included in this module provide examples of each of these levels of abstraction with (hopefully) enough context to make their use clear.
 
 - **High Level**:  \
   - Function Call API  \
