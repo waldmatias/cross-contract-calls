@@ -410,12 +410,12 @@ export function all_together_now(): void {
   const callback_args = 'all for one, done and done'
 
   // para obtener los resultados de estas dos llamadas, registra una tercera como callback
-  promise_3.then(callback_account)             // callback contract account name
+  promise_3.then(callback_account)             // nombre de cuenta contrato callback
     .function_call(
-      callback_method,                         // callback method name
-      callback_args,                           // callback method arguments
-      u128.Zero,                               // deposit attached to the callback
-      BASIC_GAS,                               // gas attached to the callback (~5 Tgas (5e12) per "hop")
+      callback_method,                         // nombre de método callback
+      callback_args,                           // argumentos de método callback
+      u128.Zero,                               // deposito asociado al método callback
+      BASIC_GAS,                               // gas asociado al método callback (~5 Tgas (5e12) por "salto")
     )
 }
 
