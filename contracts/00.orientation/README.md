@@ -558,7 +558,7 @@ Developers can also inspect the number of results available in a tuple of result
 
 ### High Level Interface
 
-- `ContractPromise#getResults`
+- `ContractPromise.getResults`
 - `ContractPromiseResult`
 
 ### Low Level Interface

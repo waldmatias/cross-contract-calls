@@ -543,6 +543,36 @@ Los resultados de llamadas entre contratos son obtenidos de una de dos maneras:
 - Los resultados de una llamada a un método remoto pasarán a ser el valor de retorno del médoto actual (local).
 - Los resultados del método llamado (remoto) pueden ser extraídos del ambiente utilizando la interfaz dedicada `ContractPromiseResult`.
 
+|                      | ContractPromise.getResults  | ContractPromiseResult |       |
+| :------------------- | :-------------------------: | :-------------------: | :---: |
+| Llamadas por Función |          soportado          |       soportado       |       |
+| Llamadas por Lote    |          soportado          |     No soportado      |       |
 
+Los desarrolladores también pueden inspeccionar el número de resultados disponibles en una tupla de resultados, si los valores de retorno de las llamadas entre contratos fueron consolidados. 
 
+### Interfaz de Alto Nivel
+
+- `ContractPromise.getResults`
+- `ContractPromiseResult`
+
+### Interfaz de Bajo Nivel
+
+**cómo usar esta interfaz?**
+
+```js
+export function promise_results_count(): u64;
+```
+
+```ts
+export function promise_result(
+  result_idx: u64,
+  register_id: u64
+): u64;
+```
+
+```ts
+export function promise_return(
+  promise_id: u64
+): void;
+```
 
